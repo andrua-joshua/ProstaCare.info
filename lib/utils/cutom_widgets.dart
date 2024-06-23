@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sample_app/route.dart';
 import 'package:sample_app/utils/app_colors.dart';
 import 'package:sample_app/utils/app_styles.dart';
 
@@ -110,7 +111,9 @@ class _imageTitleCardState extends State<ImageTitleCard>{
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: ()=> Navigator.pushNamed(context, RouteGenerator.readArticlesScreen),
+      child: Container(
       width: widget.width,
       height: widget.height,
 
@@ -135,7 +138,10 @@ class _imageTitleCardState extends State<ImageTitleCard>{
               borderRadius: BorderRadius.circular(15),
               image: DecorationImage(
                 fit: BoxFit.cover,
-                image: AssetImage(widget.imageUrl))
+                image: AssetImage(
+                  // widget.imageUrl
+                  "assets/images/x.jpg"
+                  ))
             ),
           ),
           const SizedBox(height: 10,),
@@ -149,6 +155,119 @@ class _imageTitleCardState extends State<ImageTitleCard>{
               overflow: TextOverflow.ellipsis,)))
         ],
       ),
+    ),
     );
   }
+}
+
+class DSections extends StatefulWidget{
+  final List<String> options;
+  final Color inActiveColor;
+  final Color activeColor;
+  final TextStyle activeStyle;
+  final TextStyle inActiveStyle;
+  double borderRadius;
+  int activeIndex;
+  final Function(int) onSelect;
+  DSections({
+    super.key,
+    required this.options,
+    required this.activeColor,
+    required this.inActiveColor,
+    required this.activeStyle,
+    required this.inActiveStyle,
+    required this.onSelect,
+    this.borderRadius = 15,
+    this.activeIndex = 0
+  });
+
+  @override
+  _dSectionsState createState () => _dSectionsState();
+
+
+}
+
+
+class _dSectionsState extends State<DSections>{
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(
+          widget.options.length, 
+          (x)=> unitItem(
+            label: widget.options[x], 
+            index: x)),
+      ),
+    );
+  }
+
+
+  Widget unitItem({
+    required String label,
+    required int index
+  }) => GestureDetector(
+    onTap: (){
+      widget.onSelect(index);
+    },
+    child: Container(
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(widget.borderRadius),
+      color: index==widget.activeIndex
+          ?widget.activeColor: widget.inActiveColor,  
+    ),
+    padding: const EdgeInsets.symmetric(
+      horizontal: 6,
+      vertical: 4
+    ),
+    margin: const EdgeInsets.symmetric(
+      horizontal: 6,
+    ),
+    child: Text(
+      label,
+      style: widget.activeIndex== index?
+          widget.activeStyle: widget.inActiveStyle,
+    ),
+  ),
+  );
+}
+
+
+
+class DGridWidget extends StatelessWidget{
+  final List<Widget> children;
+  final int colCount;
+  const DGridWidget({
+    super.key,
+    required this.children,
+    required this.colCount
+  });
+
+
+
+  @override
+  Widget build(BuildContext context) {
+
+    int leng = children.length;
+    int rows = (leng/colCount).round();
+    int lastColCount =colCount-  ((colCount*rows)-leng);
+
+
+    return Column(
+      children: List.generate(
+        rows, (row)=>Padding(
+          padding:  const EdgeInsets.symmetric(vertical: 10),
+          child:Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(
+            ((row == (rows-1)) && lastColCount>0)
+            ? lastColCount: colCount , 
+            (col)=> children[row+col]),
+        ))),
+    );
+  }
+
+
 }

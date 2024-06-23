@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
+import 'package:sample_app/bloc/modules/patient_module.dart';
+import 'package:sample_app/providers/user_provider.dart';
 import 'package:sample_app/route.dart';
 import 'package:sample_app/utils/app_colors.dart';
 import 'package:sample_app/utils/app_styles.dart';
@@ -27,6 +31,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen>{
   late final TextEditingController _ninController;
 
   int activeIndex = 0;
+  bool isloading = false;
 
   @override
   void initState() {
@@ -63,7 +68,9 @@ class _PatientSignupScreenState extends State<PatientSignupScreen>{
       appBar: AppBar(
         backgroundColor: AppColors.softWhiteColor,
       ),
-      body: SafeArea(
+      body: Consumer<UserProvider>(
+        builder: 
+          (context, valueU, child) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 10
@@ -211,7 +218,40 @@ class _PatientSignupScreenState extends State<PatientSignupScreen>{
 
                 ],
               )),
-          ),)),
+          ),)),),
     );
+  }
+
+  Future<void> _signUp({
+    required UserProvider userProvider
+  }) async{
+    setState(() {
+      isloading = true;
+    });
+
+    final user = PatientModule(
+      id: 0, 
+      name: _fullnameController.text, 
+      email: _emailController.text, 
+      phone: _phoneController.text, 
+      age: _ageController.text, 
+      nin: _ninController.text, 
+      sex: _genderController.text);
+
+    final res = await userProvider.userRespositoryApi.createPatient(
+      password: _passwordController.text, 
+      pateintModule: user);
+
+    if(res!=null){
+      Navigator.pushNamed(
+        context, RouteGenerator.loginScreen);
+    }else{
+      Fluttertoast.showToast(
+        msg: "Failed to create Account");
+    }
+
+    setState(() {
+      isloading = false;
+    });
   }
 }

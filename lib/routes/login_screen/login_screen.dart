@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
+import 'package:sample_app/providers/user_provider.dart';
 import 'package:sample_app/route.dart';
 import 'package:sample_app/utils/app_colors.dart';
 import 'package:sample_app/utils/app_styles.dart';
@@ -18,6 +21,8 @@ class LoginScreen extends StatefulWidget{
 class _loginScreenState extends State<LoginScreen>{
 
   final GlobalKey<FormState> key = GlobalKey<FormState>();
+
+  bool isloading = false;
 
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
@@ -48,7 +53,8 @@ class _loginScreenState extends State<LoginScreen>{
       appBar: AppBar(
         backgroundColor: AppColors.softWhiteColor,
       ),
-      body: SafeArea(
+      body: Consumer<UserProvider>(
+        builder: (context, valueU, child) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 10
@@ -115,7 +121,9 @@ class _loginScreenState extends State<LoginScreen>{
                     bgColor: AppColors.primaryColor, 
                     borderRadius: 20, 
                     textStyle: AppStyles.normalWhiteTextStyle, 
-                    onClick: (){}),
+                    onClick: (){
+                      _login(valueU);
+                    }),
                   const SizedBox(height: 10,),
                   activeIndex==0? DOutlinedButton(
                     label: "SignUp", 
@@ -129,7 +137,99 @@ class _loginScreenState extends State<LoginScreen>{
 
                 ],
               )),
-          ),)),
+          ),)),),
     );
+  }
+
+
+  Future<void> _login(
+    UserProvider userProvider
+  )async{
+    setState(() {
+      isloading = true;
+    });
+    switch(activeIndex){
+      case 0:
+        final res = await userProvider.userRespositoryApi.loginAsPatient(
+          email: _emailController.text, 
+          password: _passwordController.text,
+          provider: userProvider);
+        
+        if(res==1){
+          final user = await userProvider.userRespositoryApi.getPatientProfile(
+            token: userProvider.token);
+          if(user!=null){
+            userProvider.patientModule = user;
+            userProvider.notifyAll();
+            Navigator.pushNamed(context, RouteGenerator.accountDetailsScreen);
+          }else{
+            Fluttertoast.showToast(
+              msg: "Failed to fetch user Profile");
+          }
+        }else if(res == 0){
+          Fluttertoast.showToast(
+              msg: "User not found");
+        }else{
+          Fluttertoast.showToast(
+              msg: "Login failed.\n Check your  internet and try again");
+        }
+        break;
+
+      case 1:
+        final res = await userProvider.userRespositoryApi.loginAsDoctor(
+          email: _emailController.text, 
+          password: _passwordController.text,
+          provider: userProvider);
+        
+        if(res==1){
+          final user = await userProvider.userRespositoryApi.getDoctorProfile(
+            token: userProvider.token);
+          if(user!=null){
+            userProvider.doctorModule = user;
+            userProvider.notifyAll();
+            Navigator.pushNamed(context, RouteGenerator.accountDetailsScreen);
+          }else{
+            Fluttertoast.showToast(
+              msg: "Failed to fetch user Profile");
+          }
+        }else if(res == 0){
+          Fluttertoast.showToast(
+              msg: "User not found");
+        }else{
+          Fluttertoast.showToast(
+              msg: "Login failed.\n Check your  internet and try again");
+        }
+        break;
+      case 2:
+
+        final res = await userProvider.userRespositoryApi.loginAsAdmin(
+          email: _emailController.text, 
+          password: _passwordController.text,
+          provider: userProvider);
+        
+        if(res==1){
+          final user = await userProvider.userRespositoryApi.getAdminProfile(
+            token: userProvider.token);
+          if(user!=null){
+            userProvider.adminModule = user;
+            userProvider.notifyAll();
+            Navigator.pushNamed(context, RouteGenerator.accountDetailsScreen);
+          }else{
+            Fluttertoast.showToast(
+              msg: "Failed to fetch user Profile");
+          }
+        }else if(res == 0){
+          Fluttertoast.showToast(
+              msg: "User not found");
+        }else{
+          Fluttertoast.showToast(
+              msg: "Login failed.\n Check your  internet and try again");
+        }
+        break;
+    }
+
+    setState(() {
+      isloading = false;
+    });
   }
 }

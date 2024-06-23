@@ -108,9 +108,7 @@ class _assesmentScreenState extends State<AssesmentScreen>{
                               showModalBottomSheet(
                                 context: context, 
                                 builder: (context){
-                                  return Container(
-                                    
-                                  );
+                                  return AssesmentScoreWidget(score: _score);
                                 });
 
                             }

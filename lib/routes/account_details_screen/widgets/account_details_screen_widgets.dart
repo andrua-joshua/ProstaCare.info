@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:sample_app/route.dart';
 import 'package:sample_app/routes/home_screen/widgets/home_screen_widgets.dart';
 import 'package:sample_app/utils/app_colors.dart';
+import 'package:sample_app/utils/app_constants.dart';
 import 'package:sample_app/utils/app_styles.dart';
 import 'package:sample_app/utils/buttons.dart';
 import 'package:sample_app/utils/cutom_widgets.dart';
+import 'package:sample_app/utils/dialogs.dart';
 
 class AccountSummaryWidget extends StatelessWidget{
   final String fullname;
@@ -185,26 +188,12 @@ class PatientAccountDetails extends StatelessWidget{
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 30,),
-                const AccountSummaryWidget(
-                  fullname: "John Doe", 
-                  email: "drillox@gmail.com", 
+                AccountSummaryWidget(
+                  fullname: AppConstants.userInfo[2]['name']??"", 
+                  email: AppConstants.userInfo[2]['email'], 
                   imgUrl: "assets/images/img.jpeg",
-                  phone: "+25677052635362"),
+                  phone: AppConstants.userInfo[2]['phone']),
                 const SizedBox(height: 40,),
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(
-                //     horizontal: 20
-                //   ),
-                //   child: DSolidButton(
-                //   label: "Dashboard", 
-                //   btnHeight: 45, 
-                //   bgColor: AppColors.primaryColor, 
-                //   borderRadius: 20, 
-                //   textStyle: AppStyles.normalWhiteTextStyle, 
-                //   onClick: (){
-
-                //   }),),
-                // const SizedBox(height: 20,),
                 SizedBox(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -234,11 +223,27 @@ class PatientAccountDetails extends StatelessWidget{
                 SizedBox(
                   child: Column(
                     children: List.generate(
-                      3, (x) => const UnitAppointment(
+                      3, (x) => GestureDetector(
+                        onTap: (){
+                          showModalBottomSheet(
+                                isScrollControlled: true,
+                                context: context, 
+                                builder: (context){
+                                  return BookingViewDialog(
+                                    doctorName: AppConstants.userInfo[x]['username'], 
+                                    doctorEmail: AppConstants.userInfo[x]['email'], 
+                                    date: "12th June, 2024", 
+                                    time: "11:34 AM", 
+                                    coverImg: "assets/images/img.jpeg");
+                                  
+                                });
+                        },
+                        child: UnitAppointment(
                         date: "12th June, 2024", 
-                        doctorName: "John Doe", 
+                        doctorName: AppConstants.userInfo[x]['username'], 
                         imgUrl: "assets/images/img.jpeg", 
-                        time: "11:45")),
+                        time: "11:45"),
+                      )),
                   ),
                 ),
 
@@ -254,7 +259,7 @@ class PatientAccountDetails extends StatelessWidget{
                   borderRadius: 20, 
                   textStyle: AppStyles.normalWhiteTextStyle, 
                   onClick: (){
-
+                    Navigator.pushNamed(context, RouteGenerator.allBookingsScreen);
                   }),),
                 const SizedBox(height: 30,),
 
@@ -269,13 +274,37 @@ class PatientAccountDetails extends StatelessWidget{
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: List.generate(
-                        4, (i)=> const UserTitleCard(
-                          imageUrl: "assets/images/img.jpeg", 
-                          name: "Dr. John Doe",
-                          title: "The Begning of a new treatment age.", 
-                          textStyle: AppStyles.normalBlackTextStyle, 
-                          width: 150, 
-                          height: 200)),
+                        4, (i) => i!=3? GestureDetector(
+                          onTap: (){
+                            showModalBottomSheet(
+                              isScrollControlled: true,
+                              context: context, 
+                              builder: (context){
+                                return DoctorViewDialog(
+                                  doctorName: AppConstants.userInfo[i]['username'], 
+                                  doctorEmail: AppConstants.userInfo[i]['email'], 
+                                  nin: "CMI23OU34JHKKJ23HH4", 
+                                  phone: AppConstants.userInfo[i]['phone'],
+                                  location: "Bukoto, main", 
+                                  coverImg: "assets/images/img.jpeg");
+                                
+                              });
+                          },
+                          child: UserTitleCard(
+                            imageUrl: "assets/images/img.jpeg", 
+                            name: "Dr. ${AppConstants.userInfo[i]['username']}",
+                            title: "The Begning of a new treatment age.", 
+                            textStyle: AppStyles.normalBlackTextStyle, 
+                            width: 150, 
+                            height: 200),
+                        )
+                        : TextButton(
+                          onPressed: (){
+                            Navigator.pushNamed(context, RouteGenerator.allDoctorsScreen);
+                          }, child:  const Text(
+                              "View All",
+                              style: AppStyles.normalPrimaryTextStyle,
+                            ))),
                     ),
                   ),
                 ),
@@ -291,11 +320,26 @@ class PatientAccountDetails extends StatelessWidget{
                 SizedBox(
                   child: Column(
                     children: List.generate(
-                      3, (x) => const UnitAppointment(
+                      3, (x) => GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                            isScrollControlled: true,
+                            context: context, 
+                            builder: (context){
+                              return const GroupViewDialog(
+                                groupTitle: 'Group title', 
+                                groupDescription: AppConstants.assesmentQoutes,
+                                groupLink: "https://group-link.com",
+                                );
+                              
+                            });
+                        },
+                        child: const UnitAppointment(
                         date: "http:goroup-link.whatsapp.com", 
                         doctorName: "Group name", 
                         imgUrl: "assets/images/img.jpeg", 
-                        time: "23")),
+                        time: "23"),
+                      )),
                   ),
                 ),
 
@@ -311,7 +355,7 @@ class PatientAccountDetails extends StatelessWidget{
                   borderRadius: 20, 
                   textStyle: AppStyles.normalWhiteTextStyle, 
                   onClick: (){
-
+                    Navigator.pushNamed(context, RouteGenerator.allGroupsScreen);
                   }),),
                 SizedBox(height: 15,)
               ],
@@ -342,26 +386,12 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 30,),
-                const AccountSummaryWidget(
-                  fullname: "John Doe", 
-                  email: "drillox@gmail.com", 
+                AccountSummaryWidget(
+                  fullname: AppConstants.userInfo[0]['username']??"", 
+                  email: AppConstants.userInfo[0]['email'], 
                   imgUrl: "assets/images/img.jpeg",
                   phone: "+25677052635362"),
                 const SizedBox(height: 40,),
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(
-                //     horizontal: 20
-                //   ),
-                //   child: DSolidButton(
-                //   label: "Dashboard", 
-                //   btnHeight: 45, 
-                //   bgColor: AppColors.primaryColor, 
-                //   borderRadius: 20, 
-                //   textStyle: AppStyles.normalWhiteTextStyle, 
-                //   onClick: (){
-
-                //   }),),
-                // const SizedBox(height: 20,),
                 SizedBox(
                   child: LayoutBuilder(
                     builder:(context, constraints) {
@@ -392,7 +422,7 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                     },),
                 ),
                 const Divider(thickness: 0.6, color: Colors.grey,),
-                SizedBox(
+                const SizedBox(
                   child: Row(
                     children: [
                       const Expanded(child:Text(
@@ -401,22 +431,6 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                     )),
 
                     SizedBox(width: 10,),
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        border: Border.all(
-                          color: Colors.grey,
-                          width: 0.5
-                        ),
-                        
-                      ),
-                      // padding: const EdgeInsets.all(1),
-                      child: 
-                          IconButton(
-                            onPressed: (){}, 
-                            icon: const Icon(Icons.add, size: 20,))
-                    ),
                     ],
                   ),
                 ),
@@ -426,11 +440,27 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                 SizedBox(
                   child: Column(
                     children: List.generate(
-                      3, (x) => const UnitAppointment(
+                      3, (x) => GestureDetector(
+                        onTap: (){
+                          showModalBottomSheet(
+                                isScrollControlled: true,
+                                context: context, 
+                                builder: (context){
+                                  return BookingViewDialog(
+                                    doctorName: AppConstants.userInfo[x]['username'], 
+                                    doctorEmail: AppConstants.userInfo[x]['email'], 
+                                    date: "12th June, 2024", 
+                                    time: "11:34 AM", 
+                                    coverImg: "assets/images/img.jpeg");
+                                  
+                                });
+                        },
+                        child: UnitAppointment(
                         date: "12th June, 2024", 
-                        doctorName: "John Doe", 
+                        doctorName: AppConstants.userInfo[x]['username'], 
                         imgUrl: "assets/images/img.jpeg", 
-                        time: "11:45")),
+                        time: "11:45"),
+                      )),
                   ),
                 ),
                 const SizedBox(height: 10,),
@@ -445,7 +475,7 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                   borderRadius: 20, 
                   textStyle: AppStyles.normalWhiteTextStyle, 
                   onClick: (){
-
+                    Navigator.pushNamed(context, RouteGenerator.allBookingsScreen);
                   }),),
                 
                 const SizedBox(height: 20,),
@@ -458,7 +488,7 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                       style: AppStyles.titleBlackTextStyle,
                     )),
 
-                    SizedBox(width: 10,),
+                    const SizedBox(width: 10,),
                     Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -472,7 +502,15 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                       // padding: const EdgeInsets.all(1),
                       child: 
                           IconButton(
-                            onPressed: (){}, 
+                            onPressed: (){
+                              showModalBottomSheet(
+                                isScrollControlled: true,
+                                context: context, 
+                                builder: (context){
+                                  return const AddArticleDialog();
+                                  
+                                });
+                            }, 
                             icon: const Icon(Icons.add, size: 20,))
                     ),
                     ],
@@ -485,12 +523,19 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: List.generate(
-                        4, (i)=> const ImageTitleCard(
+                        4, (i) => i!=3? const ImageTitleCard(
                           imageUrl: "assets/images/img.jpeg", 
                           title: "The Begning of a new treatment age.", 
                           textStyle: AppStyles.normalBlackTextStyle, 
                           width: 170, 
-                          height: 200)),
+                          height: 200): TextButton(
+                            onPressed: (){
+                              Navigator.pushNamed(context, RouteGenerator.allArticlesScreen);
+                            }, 
+                            child: const Text(
+                              "View All",
+                              style: AppStyles.normalPrimaryTextStyle,
+                            ))),
                     ),
                   ),
                 ),
@@ -519,7 +564,15 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                       // padding: const EdgeInsets.all(1),
                       child: 
                           IconButton(
-                            onPressed: (){}, 
+                            onPressed: (){
+                              showModalBottomSheet(
+                                isScrollControlled: true,
+                                context: context, 
+                                builder: (context){
+                                  return const CreateGroupDialog();
+                                  
+                                });
+                            }, 
                             icon: const Icon(Icons.add, size: 20,))
                     ),
                     ],
@@ -530,11 +583,26 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                 SizedBox(
                   child: Column(
                     children: List.generate(
-                      3, (x) => const UnitAppointment(
+                      3, (x) => GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                            isScrollControlled: true,
+                            context: context, 
+                            builder: (context){
+                              return const GroupViewDialog(
+                                groupTitle: 'Group AX', 
+                                groupDescription: AppConstants.assesmentQoutes,
+                                groupLink: "https://group-link.com",
+                                );
+                              
+                            });
+                        },
+                        child: const UnitAppointment(
                         date: "http:goroup-link.whatsapp.com", 
                         doctorName: "Group name", 
                         imgUrl: "assets/images/img.jpeg", 
-                        time: "23")),
+                        time: "23"),
+                      )),
                   ),
                 ),
 
@@ -550,7 +618,7 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                   borderRadius: 20, 
                   textStyle: AppStyles.normalWhiteTextStyle, 
                   onClick: (){
-
+                    Navigator.pushNamed(context, RouteGenerator.allGroupsScreen);
                   }),),
 
 
@@ -567,9 +635,25 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                 SizedBox(
                   child: Column(
                     children: List.generate(
-                      3, (x) => const UnitPatient(
-                        patientName: "Patient name", 
-                        imgUrl: "assets/images/img.jpeg", )),
+                      3, (x) => GestureDetector(
+                        onTap: (){
+                          showModalBottomSheet(
+                            isScrollControlled: true,
+                            context: context, 
+                            builder: (context){
+                              return PatientViewDialog(
+                                patientName: AppConstants.userInfo[x]['username'], 
+                                patientEmail: AppConstants.userInfo[x]['email'], 
+                                nin: "CMI23OU34JHKKJ23HH4", 
+                                phone: AppConstants.userInfo[x]['phone'], 
+                                coverImg: "assets/images/img.jpeg");
+                              
+                            });
+                        },
+                        child: UnitPatient(
+                          patientName: AppConstants.userInfo[x]['username']??"", 
+                          imgUrl: "assets/images/img.jpeg", ),
+                      )),
                   ),
                 ),
 
@@ -585,7 +669,7 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                   borderRadius: 20, 
                   textStyle: AppStyles.normalWhiteTextStyle, 
                   onClick: (){
-
+                    Navigator.pushNamed(context, RouteGenerator.allPatientsScreen);
                   }),),
                 const SizedBox(height: 30,),
               ],

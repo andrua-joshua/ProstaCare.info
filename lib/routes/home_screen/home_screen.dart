@@ -104,9 +104,9 @@ class _homeScreenState extends State<HomeScreen>{
                     padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Column(
                       children: List.generate(
-                        AppConstants.basics.length, (x)=> UnitBasicItemWidget(
-                          details: AppConstants.overviewString,
-                          label: AppConstants.basics[x])),
+                        AppConstants.basics2.length, (x)=> UnitBasicItemWidget(
+                          details: AppConstants.basics2[x]['response']??"",
+                          label: AppConstants.basics2[x]['label']??"")),
                     ),),
                 ),
 
@@ -121,7 +121,7 @@ class _homeScreenState extends State<HomeScreen>{
                   textStyle: AppStyles.normalWhiteTextStyle, 
                   onClick: (){
                     Navigator.pushNamed(
-                      context, RouteGenerator.loginScreen);
+                      context, RouteGenerator.assesmentScreen);
                   })),
                 const SizedBox(height: 20,),
                 Padding(
@@ -148,12 +148,19 @@ class _homeScreenState extends State<HomeScreen>{
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: List.generate(
-                        4, (i)=> const ImageTitleCard(
-                          imageUrl: "assets/images/img.jpeg", 
+                        4, (i) => i!=3? const ImageTitleCard(
+                          imageUrl: "assets/images/x.jpg", 
                           title: "The Begning of a new treatment age.", 
                           textStyle: AppStyles.normalBlackTextStyle, 
                           width: 170, 
-                          height: 200)),
+                          height: 200): TextButton(
+                            onPressed: (){
+                              Navigator.pushNamed(context, RouteGenerator.allArticlesScreen);
+                            }, 
+                            child: const Text(
+                              "View All",
+                              style: AppStyles.normalPrimaryTextStyle,
+                            ))),
                     ),
                   ),
                 ),

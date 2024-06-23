@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sample_app/providers/user_provider.dart';
 import 'package:sample_app/route.dart';
 import 'package:sample_app/routes/account_details_screen/widgets/account_details_screen_widgets.dart';
 import 'package:sample_app/utils/app_colors.dart';
 import 'package:sample_app/utils/app_styles.dart';
 import 'package:sample_app/utils/buttons.dart';
-import 'package:sample_app/utils/cutom_widgets.dart';
 
 class AccountDetailsScreen extends StatefulWidget{
   const AccountDetailsScreen({super.key});
@@ -17,11 +18,12 @@ class AccountDetailsScreen extends StatefulWidget{
 
 class _accountDetailsScreenState extends State<AccountDetailsScreen>{
 
-  bool isLoggedIn = true;
+  bool isLoggedIn = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Consumer<UserProvider>(
+      builder: (context, valueU, child) => Scaffold(
       backgroundColor: AppColors.softWhiteColor,
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
@@ -44,8 +46,9 @@ class _accountDetailsScreenState extends State<AccountDetailsScreen>{
               horizontal: 10
             ),
             margin: const EdgeInsets.symmetric(horizontal: 10),
-            child: const Text(
-              "Doctor",
+            child:  Text(
+              valueU.patientModule!=null? "Patient"
+              : valueU.doctorModule!=null? "Doctor": "",
               style: AppStyles.normalPrimaryTextStyle,
             ),
           )
@@ -58,11 +61,11 @@ class _accountDetailsScreenState extends State<AccountDetailsScreen>{
           padding: const EdgeInsets.symmetric(
             horizontal: 10
           ),
-          child: isLoggedIn? const DoctorsDashBoard()
-            : const PatientAccountDetails() //NoLoggedIn()
+          child: valueU.doctorModule!=null? const DoctorsDashBoard()
+            : valueU.patientModule!=null? const PatientAccountDetails(): NoLoggedIn()
           ,)),
 
-    );
+    ),);
   }
 
   Widget NoLoggedIn()
