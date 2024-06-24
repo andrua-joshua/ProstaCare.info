@@ -30,6 +30,9 @@ class UserRespositoryApi implements UserRepositoryBase{
         print("Create admin successful..........");
         final admin= jsonDecode(res.body)['admin'] as Map<String, dynamic>;
         return AdminModule.fromJson(admin);
+      }else if(res.statusCode == 422){
+        print("Admin with account already exists....   ${res.body}");
+        return null;
       }else{
         print("Failed to create account(admin):--> ${res.statusCode} ${res.body}");
         return null;
@@ -64,16 +67,19 @@ class UserRespositoryApi implements UserRepositoryBase{
         );
 
       if(res.statusCode == 200 || res.statusCode == 201 ){
-        print("Create doctor successful..........");
-        final doctor= jsonDecode(res.body)['doctor'] as Map<String, dynamic>;
+        print("Create doctor successful.......... >>${jsonDecode(res.body)}");
+        final doctor= jsonDecode(res.body)["doctor"] as Map<String, dynamic>;
         return DoctorModule.fromJson(doctor);
+      }else if(res.statusCode == 422){
+        print("User already exists.....  ${res.statusCode}");
+        return null;
       }else{
         print("Failed to create account(doctor):--> ${res.statusCode} ${res.body}");
         return null;
       }
 
     }catch(err){
-      print("Error creating doctor:..   $err");
+      print("Error creating doctor:..   $err :: ");
       return null;
     }
     
@@ -103,6 +109,9 @@ class UserRespositoryApi implements UserRepositoryBase{
         print("Create patient successful..........");
         final patient= jsonDecode(res.body)['patient'] as Map<String, dynamic>;
         return PatientModule.fromJson(patient);
+      }else if(res.statusCode == 422){
+        print("Account already exists.....  ${res.body}");
+        return null;
       }else{
         print("Failed to create account(Patient):-->  ${res.statusCode} ${res.body}");
         return null;
@@ -197,7 +206,7 @@ class UserRespositoryApi implements UserRepositoryBase{
         print("Succesfuly fetched profile::   ${res.statusCode}  ${res.body}");
         
         ///todo
-        return PatientModule.fromJson(jsonEncode(res.body) as Map<String, dynamic>);
+        return PatientModule.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
       }else if(res.statusCode == 404){
         print("User not found::   ${res.statusCode}  ${res.body}");
       }else{
@@ -214,7 +223,7 @@ class UserRespositoryApi implements UserRepositoryBase{
   Future<int> loginAsAdmin({required String email, required String password, required UserProvider provider}) async{
     final uri = Uri.parse(AppConstants.loginAdmin);
     final Map<String, dynamic> payload = {
-      "emial": email,
+      "email": email,
       "password": password
     };
 
@@ -225,8 +234,8 @@ class UserRespositoryApi implements UserRepositoryBase{
       );
 
       if(res.statusCode == 200 || res.statusCode == 201){
-        print("Login successful....");
-        final token = "Bearer ${jsonDecode(res.body)}";
+        print("Login successful....${res.body}");
+        final token = "Bearer ${res.body}";
         provider.token = token;
         return 1;
       }else if(res.statusCode == 401){
@@ -241,6 +250,7 @@ class UserRespositoryApi implements UserRepositoryBase{
       }
 
     }catch(err){
+      print("Login as Admin...   $err");
       return -5;
     }
   }
@@ -249,7 +259,7 @@ class UserRespositoryApi implements UserRepositoryBase{
   Future<int> loginAsDoctor({required String email, required String password, required UserProvider provider}) async{
     final uri = Uri.parse(AppConstants.loginDoctor);
     final Map<String, dynamic> payload = {
-      "emial": email,
+      "email": email,
       "password": password
     };
 
@@ -260,12 +270,12 @@ class UserRespositoryApi implements UserRepositoryBase{
       );
 
       if(res.statusCode == 200 || res.statusCode == 201){
-        print("Login successful....");
-        final token = "Bearer ${jsonDecode(res.body)}";
+        print("Login successful.... ${res.body}");
+        final token = "Bearer ${res.body}";
         provider.token = token;
         return 1;
       }else if(res.statusCode == 401){
-        print("Invalid credentials....");
+        print("Invalid credentials.... ${res.body}");
         return -1;
       }else if(res.statusCode == 404){
         print("User not found....");
@@ -276,6 +286,7 @@ class UserRespositoryApi implements UserRepositoryBase{
       }
 
     }catch(err){
+      print("Error logging in as doctor....   $err");
       return -5;
     }
   }
@@ -284,7 +295,7 @@ class UserRespositoryApi implements UserRepositoryBase{
   Future<int> loginAsPatient({required String email, required String password, required UserProvider provider}) async{
     final uri = Uri.parse(AppConstants.loginPatient);
     final Map<String, dynamic> payload = {
-      "emial": email,
+      "email": email,
       "password": password
     };
 
@@ -295,12 +306,12 @@ class UserRespositoryApi implements UserRepositoryBase{
       );
 
       if(res.statusCode == 200 || res.statusCode == 201){
-        print("Login successful....");
-        final token = "Bearer ${jsonDecode(res.body)}";
+        print("Login successful....    ${res.body}");
+        final token = "Bearer ${res.body}";
         provider.token = token;
         return 1;
       }else if(res.statusCode == 401){
-        print("Invalid credentials....");
+        print("Invalid credentials....  ${res.body}");
         return -1;
       }else if(res.statusCode == 404){
         print("User not found....");
@@ -311,6 +322,7 @@ class UserRespositoryApi implements UserRepositoryBase{
       }
 
     }catch(err){
+      print("Erro logging in patient....    $err");
       return -5;
     }
   }

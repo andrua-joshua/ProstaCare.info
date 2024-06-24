@@ -3,11 +3,13 @@ class ArticleModule{
   final int id;
   final int doctorId;
   final String content;
+  final String image;
 
   const ArticleModule({
     required this.id,
     required this.content,
-    required this.doctorId
+    required this.doctorId,
+    required this.image
   });
 
 
@@ -15,7 +17,9 @@ class ArticleModule{
     => ArticleModule(
       id: json["id"], 
       content: json["content"], 
-      doctorId: json["doctor_id"]);
+      doctorId: json["doctor_id"],
+      image: json["image"]
+      );
 
   Map<String, dynamic> toJson()
     => {

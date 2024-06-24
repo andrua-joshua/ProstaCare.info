@@ -146,10 +146,11 @@ class _homeScreenState extends State<HomeScreen>{
                   height: 200,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: Row(
+                    child: 
+                    Row(
                       children: List.generate(
                         4, (i) => i!=3? const ImageTitleCard(
-                          imageUrl: "assets/images/x.jpg", 
+                          imageUrl: "assets/imagets/x.jpeg", 
                           title: "The Begning of a new treatment age.", 
                           textStyle: AppStyles.normalBlackTextStyle, 
                           width: 170, 

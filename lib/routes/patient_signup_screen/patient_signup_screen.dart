@@ -202,7 +202,9 @@ class _PatientSignupScreenState extends State<PatientSignupScreen>{
                     bgColor: AppColors.primaryColor, 
                     borderRadius: 20, 
                     textStyle: AppStyles.normalWhiteTextStyle, 
-                    onClick: (){}),
+                    onClick: (){
+                      _signUp(userProvider: valueU);
+                    }),
                   const SizedBox(height: 10,),
                   DOutlinedButton(
                     label: "Login", 

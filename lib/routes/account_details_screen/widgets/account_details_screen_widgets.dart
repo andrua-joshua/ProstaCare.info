@@ -459,7 +459,7 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                         date: "12th June, 2024", 
                         doctorName: AppConstants.userInfo[x]['username'], 
                         imgUrl: "assets/images/img.jpeg", 
-                        time: "11:45"),
+                        time: "1$x:4$x"),
                       )),
                   ),
                 ),
@@ -583,16 +583,16 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                 SizedBox(
                   child: Column(
                     children: List.generate(
-                      3, (x) => GestureDetector(
+                      1, (x) => GestureDetector(
                         onTap: () {
                           showModalBottomSheet(
                             isScrollControlled: true,
                             context: context, 
                             builder: (context){
                               return const GroupViewDialog(
-                                groupTitle: 'Group AX', 
-                                groupDescription: AppConstants.assesmentQoutes,
-                                groupLink: "https://group-link.com",
+                                groupTitle: 'Radiant youth, shining throug cancer', 
+                                groupDescription: "Our supportive community of young individuals navigates the challenges of prostate cancer. We empower each other to to strive through shared experiences, compassionate about understanding, and valuable resources.\nWhether your survicor, currently undergoing treatment, or supporting a loved one, our group offers a safe space to find strength, guidance, and hope. Together, we illuminate the path towards awareness, healing and resilience. Join us and shine bright.",
+                                groupLink: "https://chat.whatsapp.com/C5rNUn4YPG11EfCEI0xzcm",
                                 );
                               
                             });
