@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sample_app/bloc/modules/article_module.dart';
+import 'package:sample_app/bloc/repository/articles_repository/articles_repository_api.dart';
+import 'package:sample_app/bloc/repository/bookings_repository/bookings_repository_api.dart';
+import 'package:sample_app/bloc/repository/group_repository/group_repository_api.dart';
 import 'package:sample_app/bloc/repository/user_repository_base/user_respository_api.dart';
+import 'package:sample_app/providers/articles_provider.dart';
+import 'package:sample_app/providers/booking_provider.dart';
+import 'package:sample_app/providers/group_provider.dart';
 import 'package:sample_app/providers/user_provider.dart';
 import 'package:sample_app/route.dart';
 import 'package:sample_app/routes/all_articles_screen/all_articles_screen.dart';
@@ -19,7 +26,16 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider<UserProvider>(
-          create: (_) => UserProvider(UserRespositoryApi()))
+          create: (_) => UserProvider(UserRespositoryApi())),
+
+        ChangeNotifierProvider<ArticlesProvider>(
+          create: (_) => ArticlesProvider(ArticlesRepositoryApi())),
+        
+        ChangeNotifierProvider<BookingProvider>(
+          create: (_) => BookingProvider(BookingsRepositoryApi())),
+
+        ChangeNotifierProvider<GroupProvider>(
+          create: (_) => GroupProvider(GroupRepositoryApi()))
       ],
       builder:(context, child) => const MyApp(),)
   );
@@ -39,7 +55,7 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
       debugShowCheckedModeBanner: false,
-      initialRoute: RouteGenerator.splashScreen,
+      initialRoute: RouteGenerator.homeScren,
       onGenerateRoute: RouteGenerator.generateRoute,
       // home: const ReadArticlesScreen(),
     );

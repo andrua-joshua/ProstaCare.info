@@ -1,3 +1,5 @@
+import 'package:sample_app/utils/app_constants.dart';
+
 class GroupModule{
 
   final int id;
@@ -16,22 +18,22 @@ class GroupModule{
     required this.link
   });
 
-
+  
   factory GroupModule.fromJson(Map<String, dynamic> json)
     => GroupModule(
       id: json['id'], 
-      title: json['title'], 
-      coverImg: json['cover_image_url'], 
-      doctorId: json['doctor_id'], 
-      description: json["description"],
-      link: json['link']);
+      title: json['title']??"", 
+      coverImg: json['image']??AppConstants.groupPlaceHolder, 
+      doctorId: int.parse(json['doctor_id']??0), 
+      description: json["description"]??"",
+      link: json['link']??"");
 
   Map<String, dynamic> toJson()
     => {
       "id": id,
       "title": title,
       'description': description,
-      "cover_image_url": coverImg,
+      "image": coverImg,
       "doctor_id": doctorId,
       "link": link
     };

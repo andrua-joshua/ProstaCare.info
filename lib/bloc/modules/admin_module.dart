@@ -4,13 +4,15 @@ class AdminModule{
   final String name;
   final String email;
   final String phone;
+  final String image;
 
 
   const AdminModule({
     required this.id,
     required this.email,
     required this.name,
-    required this.phone
+    required this.phone,
+    required this.image
   });
 
   factory AdminModule.fromJson(Map<String, dynamic> json)
@@ -18,6 +20,7 @@ class AdminModule{
       id: json['id'], 
       email: json['email'], 
       name: json['name'], 
+      image: json['image'],
       phone: json['phone']);
 
 
@@ -26,6 +29,7 @@ class AdminModule{
       "id":id,
       "name":name,
       "email":email,
-      "phone":phone
+      "phone":phone,
+      "image": image
     };
 }

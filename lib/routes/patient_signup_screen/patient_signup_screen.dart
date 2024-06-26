@@ -238,6 +238,7 @@ class _PatientSignupScreenState extends State<PatientSignupScreen>{
       phone: _phoneController.text, 
       age: _ageController.text, 
       nin: _ninController.text, 
+      image: "",
       sex: _genderController.text);
 
     final res = await userProvider.userRespositoryApi.createPatient(

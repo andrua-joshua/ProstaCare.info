@@ -29,7 +29,7 @@ class _accountDetailsScreenState extends State<AccountDetailsScreen>{
         backgroundColor: AppColors.primaryColor,
         automaticallyImplyLeading: false,
         leading: IconButton(
-          onPressed: ()=> Navigator.pop(context), 
+          onPressed: ()=> Navigator.pushNamed(context, RouteGenerator.homeScren), 
           icon: const Icon(Icons.arrow_back, color: Colors.white,)),
         title: const Text(
           "DashBoard",

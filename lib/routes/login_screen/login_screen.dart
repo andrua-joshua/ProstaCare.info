@@ -106,7 +106,7 @@ class _loginScreenState extends State<LoginScreen>{
                       horizontal: 10
                     ),
                     child: DRadioOptions(
-                    options: const ["Patient", "Doctor", "Admin"], 
+                    options: const ["Patient", "Doctor"], 
                     selected: (x){
                       setState(() {
                         activeIndex = x;

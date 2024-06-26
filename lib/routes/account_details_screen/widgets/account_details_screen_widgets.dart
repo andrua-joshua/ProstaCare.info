@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sample_app/providers/articles_provider.dart';
+import 'package:sample_app/providers/booking_provider.dart';
+import 'package:sample_app/providers/group_provider.dart';
+import 'package:sample_app/providers/user_provider.dart';
 import 'package:sample_app/route.dart';
 import 'package:sample_app/routes/home_screen/widgets/home_screen_widgets.dart';
 import 'package:sample_app/utils/app_colors.dart';
@@ -7,6 +12,7 @@ import 'package:sample_app/utils/app_styles.dart';
 import 'package:sample_app/utils/buttons.dart';
 import 'package:sample_app/utils/cutom_widgets.dart';
 import 'package:sample_app/utils/dialogs.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AccountSummaryWidget extends StatelessWidget{
   final String fullname;
@@ -38,7 +44,7 @@ class AccountSummaryWidget extends StatelessWidget{
       children: [
         CircleAvatar(
           radius: 40,
-          backgroundImage: AssetImage(imgUrl)
+          backgroundImage: NetworkImage(imgUrl)
         ),
         const SizedBox(width: 15,),
         Expanded(
@@ -48,16 +54,22 @@ class AccountSummaryWidget extends StatelessWidget{
               Text(
                 fullname,
                 style: AppStyles.normalBlackTextStyle,  
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2,),
               Text(
                 email,
                 style: AppStyles.normalBlackTextStyle,  
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2,),
               Text(
                 phone,
                 style: AppStyles.normalBlackTextStyle,  
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               )
             ],
           ),
@@ -106,7 +118,7 @@ class UnitAppointment extends StatelessWidget{
       children: [
         CircleAvatar(
           radius: 20,
-          backgroundImage: AssetImage(imgUrl),),
+          backgroundImage: NetworkImage (imgUrl),),
         const SizedBox(width: 10,),
         Expanded(
           child: Column(
@@ -115,10 +127,14 @@ class UnitAppointment extends StatelessWidget{
               Text(
                 doctorName,
                 style: AppStyles.normalBlackTextStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               Text(
                 date,
                 style: AppStyles.smallBlackTextStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               )
             ],
           )),
@@ -183,31 +199,37 @@ class PatientAccountDetails extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Consumer4<UserProvider, ArticlesProvider, BookingProvider, GroupProvider>(
+      builder:(context, valueU,valueA, valueB, valueG ,child)
+       => SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 30,),
                 AccountSummaryWidget(
-                  fullname: AppConstants.userInfo[2]['name']??"", 
-                  email: AppConstants.userInfo[2]['email'], 
-                  imgUrl: "assets/images/img.jpeg",
-                  phone: AppConstants.userInfo[2]['phone']),
+                  fullname: valueU.patientModule!.name, 
+                  email: valueU.patientModule!.email, 
+                  imgUrl: valueU.patientModule!.image,
+                  phone: valueU.patientModule!.phone),
                 const SizedBox(height: 40,),
                 SizedBox(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      InfoWidget(
-                        bgColor: Colors.white,
-                        label: "Appointments",
-                        value: "23",
-                        width: 130,
-                        height: 100),
+                      FutureBuilder(
+                      future: valueB.bookingRepo.getBookingsByPatient(
+                        token: valueU.token, 
+                        patientId: valueU.patientModule!.id), 
+                        builder:(context, snapshot) => InfoWidget(
+                          label: "Appoitments", 
+                          value: snapshot.hasData? "${snapshot.data?.length??0}":"...", 
+                          bgColor: Colors.white, 
+                          width: 130, 
+                          height: 100),),
                       InfoWidget(
                         bgColor: Colors.white,
                         label: "Assesments",
-                        value: "13",
+                        value: "3",
                         width: 130,
                         height: 100)
                     ],
@@ -221,30 +243,135 @@ class PatientAccountDetails extends StatelessWidget{
 
                 const SizedBox(height: 15,),
                 SizedBox(
-                  child: Column(
-                    children: List.generate(
-                      3, (x) => GestureDetector(
-                        onTap: (){
-                          showModalBottomSheet(
-                                isScrollControlled: true,
-                                context: context, 
-                                builder: (context){
-                                  return BookingViewDialog(
-                                    doctorName: AppConstants.userInfo[x]['username'], 
-                                    doctorEmail: AppConstants.userInfo[x]['email'], 
-                                    date: "12th June, 2024", 
-                                    time: "11:34 AM", 
-                                    coverImg: "assets/images/img.jpeg");
-                                  
-                                });
-                        },
-                        child: UnitAppointment(
-                        date: "12th June, 2024", 
-                        doctorName: AppConstants.userInfo[x]['username'], 
-                        imgUrl: "assets/images/img.jpeg", 
-                        time: "11:45"),
-                      )),
-                  ),
+                  child: FutureBuilder(
+                    future: valueB.bookingRepo.getBookingsByPatient(
+                      token: valueU.token, 
+                      patientId: valueU.patientModule!.id), 
+                      builder: (context, snapshot) {
+                        
+                        if(snapshot.hasData){
+                          final data = snapshot.data;
+
+                          return Column(
+                            children: List.generate(
+                              data!.length>=4? 4: 
+                                data?.length??0 , (x) => GestureDetector(
+                                onTap: (){
+                                  showModalBottomSheet(
+                                        isScrollControlled: true,
+                                        context: context, 
+                                        builder: (context){
+                                          return FutureBuilder(
+                                            future: valueU.userRespositoryApi.getSingleDoctorProfile(
+                                              token: valueU.token, 
+                                              doctorId: data[x].doctorId), 
+                                            builder:(context, snapshot) {
+
+                                              if(snapshot.hasData){
+                                                final datax = snapshot.data;
+
+                                                return BookingViewDialog(
+                                                  doctorName: datax!.name, 
+                                                  doctorEmail: datax.email, 
+                                                  date: data[x].sessionDate.substring(0, data[x].sessionDate.length-5), 
+                                                  time: data[x].sessionDate.substring(data[x].sessionDate.length-6), 
+                                                  coverImg: datax.image);
+                                              }
+                                            
+                                              if(snapshot.hasError){
+                                                  return const Center(
+                                                    child:SizedBox(
+                                                      height: 300,
+                                                      child: Text(
+                                                        "Check your Internet and try Again",
+                                                        style: AppStyles.normalGreyTextStyle,
+                                                      ),
+                                                    ));
+                                                }
+
+                                                return const Center(
+                                                  child: CircularProgressIndicator(),
+                                                );
+
+
+                                            });
+
+                                          
+                                          // BookingViewDialog(
+                                          //   doctorName: AppConstants.userInfo[x]['username'], 
+                                          //   doctorEmail: AppConstants.userInfo[x]['email'], 
+                                          //   date: data![x].sessionDate.substring(0, data![x].sessionDate.length-5), 
+                                          //   time: data![x].sessionDate.substring(data![x].sessionDate.length-6), 
+                                          //   coverImg: "assets/images/img.jpeg");
+                                          
+                                        });
+                                },
+                                child: FutureBuilder(
+                                  future: valueU.userRespositoryApi.getSingleDoctorProfile(
+                                    token: valueU.token, 
+                                    doctorId: data[x].doctorId), 
+                                  builder:(context, snapshot) {
+                                    if(snapshot.hasData){
+                                      final datax = snapshot.data;
+                                      return UnitAppointment(
+                                        date: data[x].sessionDate.substring(0, data[x].sessionDate.length-5), 
+                                        doctorName: datax!.name, 
+                                        imgUrl: datax.image, 
+                                        time: data![x].sessionDate.substring(data![x].sessionDate.length-6));
+                                    }
+
+                                    
+                                    if(snapshot.hasError){
+                                        return const Center(
+                                          child:SizedBox(
+                                            height: 300,
+                                            child: Text(
+                                              "Check your Internet and try Again",
+                                              style: AppStyles.normalGreyTextStyle,
+                                            ),
+                                          ));
+                                      }
+
+                                      return Container(
+                                        constraints:  const BoxConstraints.expand(
+                                          height: 40,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(15)
+                                        ),
+                                        color: const Color.fromARGB(255, 250, 250, 250),
+                                      );
+
+
+
+                                  },)
+                                // UnitAppointment(
+                                // date: data![x].sessionDate.substring(0, data![x].sessionDate.length-5), 
+                                // doctorName: "patient name", 
+                                // imgUrl: "assets/images/img.jpeg", 
+                                // time: data![x].sessionDate.substring(data![x].sessionDate.length-6)),
+                              )),
+                          );
+                        }
+
+
+                        if(snapshot.hasError){
+                          return const Center(
+                            child:SizedBox(
+                              height: 300,
+                              child: Text(
+                                "Failed to Fetch bookings\n Check your Internet and try Again",
+                                style: AppStyles.normalGreyTextStyle,
+                              ),
+                            ));
+                        }
+
+                        return const Center(
+                          child:SizedBox(
+                            // height: 100,
+                            child: CircularProgressIndicator(),
+                          ));
+                      },),
                 ),
 
                 const SizedBox(height: 10,),
@@ -272,40 +399,70 @@ class PatientAccountDetails extends StatelessWidget{
                   height: 200,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(
-                        4, (i) => i!=3? GestureDetector(
-                          onTap: (){
-                            showModalBottomSheet(
-                              isScrollControlled: true,
-                              context: context, 
-                              builder: (context){
-                                return DoctorViewDialog(
-                                  doctorName: AppConstants.userInfo[i]['username'], 
-                                  doctorEmail: AppConstants.userInfo[i]['email'], 
-                                  nin: "CMI23OU34JHKKJ23HH4", 
-                                  phone: AppConstants.userInfo[i]['phone'],
-                                  location: "Bukoto, main", 
-                                  coverImg: "assets/images/img.jpeg");
-                                
-                              });
-                          },
-                          child: UserTitleCard(
-                            imageUrl: "assets/images/img.jpeg", 
-                            name: "Dr. ${AppConstants.userInfo[i]['username']}",
-                            title: "The Begning of a new treatment age.", 
-                            textStyle: AppStyles.normalBlackTextStyle, 
-                            width: 150, 
-                            height: 200),
-                        )
-                        : TextButton(
-                          onPressed: (){
-                            Navigator.pushNamed(context, RouteGenerator.allDoctorsScreen);
-                          }, child:  const Text(
-                              "View All",
-                              style: AppStyles.normalPrimaryTextStyle,
-                            ))),
-                    ),
+                    child: FutureBuilder(
+                      future: valueU.userRespositoryApi.getAllDoctor(
+                        token: valueU.token), 
+                      builder:(context, snapshot) {
+                        
+                        if(snapshot.hasData){
+                          final data = snapshot.data;
+
+                          return Row(
+                              children: List.generate(
+                                data!.length>=4? 4: 
+                                data?.length??0, (i) => i!=3? GestureDetector(
+                                  onTap: (){
+                                    showModalBottomSheet(
+                                      isScrollControlled: true,
+                                      context: context, 
+                                      builder: (context){
+                                        return DoctorViewDialog(
+                                          doctorName: data[i].name, 
+                                          doctorEmail: data[i].email, 
+                                          nin: data[i].nin, 
+                                          phone: data[i].phone,
+                                          location: data[i].location, 
+                                          coverImg: data[i].image);
+                                        
+                                      });
+                                  },
+                                  child: UserTitleCard(
+                                    imageUrl: data[i].image, 
+                                    name: "Dr. ${data[i].name}",
+                                    title: "Orthopendist", 
+                                    textStyle: AppStyles.normalBlackTextStyle, 
+                                    width: 150, 
+                                    height: 200),
+                                )
+                                : TextButton(
+                                  onPressed: (){
+                                    Navigator.pushNamed(context, RouteGenerator.allDoctorsScreen);
+                                  }, child:  const Text(
+                                      "View All",
+                                      style: AppStyles.normalPrimaryTextStyle,
+                                    ))),
+                            );
+                        }
+
+                        if(snapshot.hasError){
+                          return const Center(
+                            child:SizedBox(
+                              height: 300,
+                              child: Text(
+                                "Failed to Fetch Doctors\n Check your Internet and try Again",
+                                style: AppStyles.normalGreyTextStyle,
+                              ),
+                            ));
+                        }
+
+                        return const Center(
+                          child:SizedBox(
+                            height: 100,
+                            child: CircularProgressIndicator(),
+                          ));
+
+
+                      },),
                   ),
                 ),
                 const SizedBox(height: 30,),
@@ -318,28 +475,59 @@ class PatientAccountDetails extends StatelessWidget{
 
                 const SizedBox(height: 15,),
                 SizedBox(
-                  child: Column(
-                    children: List.generate(
-                      3, (x) => GestureDetector(
-                        onTap: () {
-                          showModalBottomSheet(
-                            isScrollControlled: true,
-                            context: context, 
-                            builder: (context){
-                              return const GroupViewDialog(
-                                groupTitle: 'Group title', 
-                                groupDescription: AppConstants.assesmentQoutes,
-                                groupLink: "https://group-link.com",
-                                );
-                              
-                            });
-                        },
-                        child: const UnitAppointment(
-                        date: "http:goroup-link.whatsapp.com", 
-                        doctorName: "Group name", 
-                        imgUrl: "assets/images/img.jpeg", 
-                        time: "23"),
-                      )),
+                  child: FutureBuilder(
+                    future: valueG.groupRepo.getAllGroups(
+                      token: valueU.token,),
+                    builder:(context, snapshot) {
+                      
+                      if(snapshot.hasData){
+                        final data = snapshot.data;
+                        return Column(
+                          children: List.generate(
+                            data!.length>=4? 3: 
+                                data?.length??0, (x) => GestureDetector(
+                              onTap: () {
+                                showModalBottomSheet(
+                                  isScrollControlled: true,
+                                  context: context, 
+                                  builder: (context){
+                                    return GroupViewDialog(
+                                      groupTitle: data![x].title, 
+                                      groupDescription: data[x].description,
+                                      groupLink: data[x].link,
+                                      );
+                                    
+                                  });
+                              },
+                              child: UnitAppointment(
+                              date: data[x].link, 
+                              doctorName: data[x].title, 
+                              imgUrl: data[x].coverImg, 
+                              time: ""),
+                            )),
+                        );
+                      }
+
+
+                      if(snapshot.hasError){
+                          return const Center(
+                            child:SizedBox(
+                              height: 300,
+                              child: Text(
+                                "Failed to Fetch Groups\n Check your Internet and try Again",
+                                style: AppStyles.normalGreyTextStyle,
+                              ),
+                            ));
+                        }
+
+                        return const Center(
+                          child:SizedBox(
+                            // height: 300,
+                            child: CircularProgressIndicator(),
+                          ));
+                      
+                      
+                    },
                   ),
                 ),
 
@@ -360,7 +548,7 @@ class PatientAccountDetails extends StatelessWidget{
                 SizedBox(height: 15,)
               ],
             ),
-          );
+          ));
   }
 }
 
@@ -381,16 +569,18 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Consumer4<UserProvider, ArticlesProvider, BookingProvider, GroupProvider>(
+      builder:(context, valueU,valueA, valueB, valueG ,child)
+       => SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 30,),
                 AccountSummaryWidget(
-                  fullname: AppConstants.userInfo[0]['username']??"", 
-                  email: AppConstants.userInfo[0]['email'], 
-                  imgUrl: "assets/images/img.jpeg",
-                  phone: "+25677052635362"),
+                  fullname: valueU.doctorModule!.name, 
+                  email: valueU.doctorModule!.email, 
+                  imgUrl: valueU.doctorModule!.image,
+                  phone: valueU.doctorModule!.phone),
                 const SizedBox(height: 40,),
                 SizedBox(
                   child: LayoutBuilder(
@@ -399,24 +589,39 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          InfoWidget(
-                            bgColor: Colors.white,
-                            label: "Appointments",
-                            value: "23",
-                            width: width,
-                            height: 100),
-                          InfoWidget(
-                            bgColor: Colors.white,
-                            label: "Articles",
-                            value: "13",
-                            width: width,
-                            height: 100),
-                          InfoWidget(
-                            bgColor: Colors.white,
-                            label: "Groups",
-                            value: "23",
-                            width: width,
-                            height: 100)
+
+                          FutureBuilder(
+                            future: valueB.bookingRepo.getBookingsByDoctor(
+                              token: valueU.token, 
+                              doctorId: valueU.doctorModule!.id), 
+                              builder:(context, snapshot) => InfoWidget(
+                                label: "Appoitments", 
+                                value: snapshot.hasData? "${snapshot.data?.length??0}":"...", 
+                                bgColor: Colors.white, 
+                                width: width, 
+                                height: 100),),
+
+                          FutureBuilder(
+                            future: valueA.articlesRepo.getArticlesByDoctorId(
+                              token: valueU.token, 
+                              doctorId: valueU.doctorModule!.id), 
+                              builder:(context, snapshot) => InfoWidget(
+                                label: "Articles", 
+                                value: snapshot.hasData? "${snapshot.data?.length??0}":"...", 
+                                bgColor: Colors.white, 
+                                width: width, 
+                                height: 100),),
+                          
+                          FutureBuilder(
+                            future: valueG.groupRepo.getGroupsByDoctor(
+                              token: valueU.token, 
+                              doctorId: valueU.doctorModule!.id), 
+                              builder:(context, snapshot) => InfoWidget(
+                                label: "Groups", 
+                                value: snapshot.hasData? "${snapshot.data?.length??0}":"...", 
+                                bgColor: Colors.white, 
+                                width: width, 
+                                height: 100),),
                         ],
                       );
                     },),
@@ -425,7 +630,7 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                 const SizedBox(
                   child: Row(
                     children: [
-                      const Expanded(child:Text(
+                      Expanded(child:Text(
                       "Bookings",
                       style: AppStyles.titleBlackTextStyle,
                     )),
@@ -438,30 +643,125 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
 
                 const SizedBox(height: 15,),
                 SizedBox(
-                  child: Column(
-                    children: List.generate(
-                      3, (x) => GestureDetector(
-                        onTap: (){
-                          showModalBottomSheet(
-                                isScrollControlled: true,
-                                context: context, 
-                                builder: (context){
-                                  return BookingViewDialog(
-                                    doctorName: AppConstants.userInfo[x]['username'], 
-                                    doctorEmail: AppConstants.userInfo[x]['email'], 
-                                    date: "12th June, 2024", 
-                                    time: "11:34 AM", 
-                                    coverImg: "assets/images/img.jpeg");
-                                  
-                                });
-                        },
-                        child: UnitAppointment(
-                        date: "12th June, 2024", 
-                        doctorName: AppConstants.userInfo[x]['username'], 
-                        imgUrl: "assets/images/img.jpeg", 
-                        time: "1$x:4$x"),
-                      )),
-                  ),
+                  child: FutureBuilder(
+                    future: valueB.bookingRepo.getBookingsByDoctor(
+                      token: valueU.token, 
+                      doctorId: valueU.doctorModule!.id), 
+                      builder: (context, snapshot) {
+                        
+                        if(snapshot.hasData){
+                          final data = snapshot.data;
+
+                          return Column(
+                            children: List.generate(
+                              data!.length>=4? 4: 
+                                data?.length??0 , (x) => GestureDetector(
+                                onTap: (){
+                                  showModalBottomSheet(
+                                        isScrollControlled: true,
+                                        context: context, 
+                                        builder: (context){
+                                          return FutureBuilder(
+                                            future: valueU.userRespositoryApi.getSinglePatientProfile(
+                                              token: valueU.token, 
+                                              patientId: data[x].patientId), 
+                                            builder:(context, snapshot) {
+
+                                              if(snapshot.hasData){
+                                                final datax = snapshot.data;
+
+                                                return BookingViewDialog(
+                                                  doctorName: datax!.name, 
+                                                  doctorEmail: datax.email, 
+                                                  date: data[x].sessionDate.substring(0, data[x].sessionDate.length-5), 
+                                                  time: data[x].sessionDate.substring(data[x].sessionDate.length-6), 
+                                                  coverImg: datax.image);
+                                              }
+                                            
+                                              if(snapshot.hasError){
+                                                  return const Center(
+                                                    child:SizedBox(
+                                                      height: 300,
+                                                      child: Text(
+                                                        "Check your Internet and try Again",
+                                                        style: AppStyles.normalGreyTextStyle,
+                                                      ),
+                                                    ));
+                                                }
+
+                                                return const Center(
+                                                  child: CircularProgressIndicator(),
+                                                );
+
+
+                                            });
+
+                                          
+                                          
+                                        });
+                                },
+                                child: FutureBuilder(
+                                  future: valueU.userRespositoryApi.getSinglePatientProfile(
+                                    token: valueU.token, 
+                                    patientId: data[x].patientId), 
+                                  builder:(context, snapshot) {
+                                    if(snapshot.hasData){
+                                      final datax = snapshot.data;
+                                      return UnitAppointment(
+                                        date: data[x].sessionDate.substring(0, data[x].sessionDate.length-5), 
+                                        doctorName: datax!.name, 
+                                        imgUrl: datax.image, 
+                                        time: data![x].sessionDate.substring(data![x].sessionDate.length-6));
+                                    }
+
+                                    
+                                    if(snapshot.hasError){
+                                        return const Center(
+                                          child:SizedBox(
+                                            height: 300,
+                                            child: Text(
+                                              "Check your Internet and try Again",
+                                              style: AppStyles.normalGreyTextStyle,
+                                            ),
+                                          ));
+                                      }
+
+                                      return Container(
+                                        constraints:  const BoxConstraints.expand(
+                                          height: 40,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(15)
+                                        ),
+                                        color: const Color.fromARGB(255, 250, 250, 250),
+                                      );
+
+
+
+                                  },)
+                              )),
+                          );
+                        }
+
+
+                        if(snapshot.hasError){
+                          return const Center(
+                            child:SizedBox(
+                              height: 300,
+                              child: Text(
+                                "Failed to Fetch bookings\n Check your Internet and try Again",
+                                style: AppStyles.normalGreyTextStyle,
+                              ),
+                            ));
+                        }
+
+                        return const Center(
+                          child:SizedBox(
+                            // height: 100,
+                            // width: 100,
+                            child: CircularProgressIndicator(),
+                          ));
+                      },),
                 ),
                 const SizedBox(height: 10,),
                 Padding(
@@ -521,22 +821,54 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                   height: 200,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(
-                        4, (i) => i!=3? const ImageTitleCard(
-                          imageUrl: "assets/images/img.jpeg", 
-                          title: "The Begning of a new treatment age.", 
-                          textStyle: AppStyles.normalBlackTextStyle, 
-                          width: 170, 
-                          height: 200): TextButton(
-                            onPressed: (){
-                              Navigator.pushNamed(context, RouteGenerator.allArticlesScreen);
-                            }, 
-                            child: const Text(
-                              "View All",
-                              style: AppStyles.normalPrimaryTextStyle,
-                            ))),
-                    ),
+                    child:  FutureBuilder(
+                      future: valueA.articlesRepo.getArticlesByDoctorId(
+                        token:valueU.token, 
+                        doctorId: valueU.doctorModule!.id), 
+                        builder:(context, snapshot) {
+                          
+                          if(snapshot.hasData){
+                            final data = snapshot.data;
+
+                            return Row(
+                              children: List.generate(
+                                data!.length>=4? 4: 
+                                data?.length??0 , (i) => i!=3? ImageTitleCard(
+                                  imageUrl: data[i].image, 
+                                  title: data[i].content, 
+                                  link: data[i].link,
+                                  textStyle: AppStyles.normalBlackTextStyle, 
+                                  width: 170, 
+                                  height: 200): TextButton(
+                                    onPressed: (){
+                                      Navigator.pushNamed(context, RouteGenerator.allArticlesScreen);
+                                    }, 
+                                    child: const Text(
+                                      "View All",
+                                      style: AppStyles.normalPrimaryTextStyle,
+                                    ))),
+                            );
+                          }
+
+                        if(snapshot.hasError){
+                          return const Center(
+                            child:SizedBox(
+                              // height: 300,
+                              child: Text(
+                                "Failed to Fetch Articles\n Check your Internet and try Again",
+                                style: AppStyles.normalGreyTextStyle,
+                              ),
+                            ));
+                        }
+
+                        return const Center(
+                          child:SizedBox(
+                            // height: 300,
+                            child: CircularProgressIndicator(),
+                          ));
+
+
+                        },),
                   ),
                 ),
                 const SizedBox(height: 30,),
@@ -581,28 +913,60 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
 
                 const SizedBox(height: 15,),
                 SizedBox(
-                  child: Column(
-                    children: List.generate(
-                      1, (x) => GestureDetector(
-                        onTap: () {
-                          showModalBottomSheet(
-                            isScrollControlled: true,
-                            context: context, 
-                            builder: (context){
-                              return const GroupViewDialog(
-                                groupTitle: 'Radiant youth, shining throug cancer', 
-                                groupDescription: "Our supportive community of young individuals navigates the challenges of prostate cancer. We empower each other to to strive through shared experiences, compassionate about understanding, and valuable resources.\nWhether your survicor, currently undergoing treatment, or supporting a loved one, our group offers a safe space to find strength, guidance, and hope. Together, we illuminate the path towards awareness, healing and resilience. Join us and shine bright.",
-                                groupLink: "https://chat.whatsapp.com/C5rNUn4YPG11EfCEI0xzcm",
-                                );
-                              
-                            });
-                        },
-                        child: const UnitAppointment(
-                        date: "http:goroup-link.whatsapp.com", 
-                        doctorName: "Group name", 
-                        imgUrl: "assets/images/img.jpeg", 
-                        time: "23"),
-                      )),
+                  child: FutureBuilder(
+                    future: valueG.groupRepo.getGroupsByDoctor(
+                      token: valueU.token, 
+                      doctorId: valueU.doctorModule!.id),
+                    builder:(context, snapshot) {
+                      
+                      if(snapshot.hasData){
+                        final data = snapshot.data;
+                        return Column(
+                          children: List.generate(
+                            data!.length>=4? 3: 
+                                data?.length??0, (x) => GestureDetector(
+                              onTap: () {
+                                showModalBottomSheet(
+                                  isScrollControlled: true,
+                                  context: context, 
+                                  builder: (context){
+                                    return GroupViewDialog(
+                                      groupTitle: data![x].title, 
+                                      groupDescription: data[x].description,
+                                      groupLink: data[x].link,
+                                      );
+                                    
+                                  });
+                              },
+                              child: UnitAppointment(
+                              date: data[x].link, 
+                              doctorName: data[x].title, 
+                              imgUrl: "", 
+                              time: ""),
+                            )),
+                        );
+                      }
+
+
+                      if(snapshot.hasError){
+                          return const Center(
+                            child:SizedBox(
+                              height: 300,
+                              child: Text(
+                                "Failed to Fetch Groups\n Check your Internet and try Again",
+                                style: AppStyles.normalGreyTextStyle,
+                              ),
+                            ));
+                        }
+
+                        return const Center(
+                          child:SizedBox(
+                            // height: 300,
+                            child: CircularProgressIndicator(),
+                          ));
+                      
+                      
+                    },
                   ),
                 ),
 
@@ -633,29 +997,167 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
 
                 const SizedBox(height: 15,),
                 SizedBox(
-                  child: Column(
-                    children: List.generate(
-                      3, (x) => GestureDetector(
-                        onTap: (){
-                          showModalBottomSheet(
-                            isScrollControlled: true,
-                            context: context, 
-                            builder: (context){
-                              return PatientViewDialog(
-                                patientName: AppConstants.userInfo[x]['username'], 
-                                patientEmail: AppConstants.userInfo[x]['email'], 
-                                nin: "CMI23OU34JHKKJ23HH4", 
-                                phone: AppConstants.userInfo[x]['phone'], 
-                                coverImg: "assets/images/img.jpeg");
+                  child: SizedBox(
+                  child: FutureBuilder(
+                    future: valueB.bookingRepo.getBookingsByDoctor(
+                      token: valueU.token, 
+                      doctorId: valueU.doctorModule!.id), 
+                      builder: (context, snapshot) {
+                        
+                        if(snapshot.hasData){
+                          final data = snapshot.data;
+
+                          return Column(
+                            children: List.generate(
+                              data!.length>=4? 4: 
+                                data?.length??0 , (x) => GestureDetector(
+                                onTap: (){
+                                  showModalBottomSheet(
+                                        isScrollControlled: true,
+                                        context: context, 
+                                        builder: (context){
+                                          return FutureBuilder(
+                                            future: valueU.userRespositoryApi.getSinglePatientProfile(
+                                              token: valueU.token, 
+                                              patientId: data[x].patientId), 
+                                            builder:(context, snapshot) {
+
+                                              if(snapshot.hasData){
+                                                final datax = snapshot.data;
+
+                                                return PatientViewDialog(
+                                                    patientName: datax!.name, 
+                                                    patientEmail: datax.email, 
+                                                    nin: datax.nin, 
+                                                    phone: datax.phone, 
+                                                    coverImg: datax.image);
+                                              }
+                                            
+                                              if(snapshot.hasError){
+                                                  return const Center(
+                                                    child:SizedBox(
+                                                      height: 300,
+                                                      child: Text(
+                                                        "Check your Internet and try Again",
+                                                        style: AppStyles.normalGreyTextStyle,
+                                                      ),
+                                                    ));
+                                                }
+
+                                                return const Center(
+                                                  child: CircularProgressIndicator(),
+                                                );
+
+
+                                            });
+
+                                          
+                                          // BookingViewDialog(
+                                          //   doctorName: AppConstants.userInfo[x]['username'], 
+                                          //   doctorEmail: AppConstants.userInfo[x]['email'], 
+                                          //   date: data![x].sessionDate.substring(0, data![x].sessionDate.length-5), 
+                                          //   time: data![x].sessionDate.substring(data![x].sessionDate.length-6), 
+                                          //   coverImg: "assets/images/img.jpeg");
+                                          
+                                        });
+                                },
+                                child: FutureBuilder(
+                                  future: valueU.userRespositoryApi.getSinglePatientProfile(
+                                    token: valueU.token, 
+                                    patientId: data[x].patientId), 
+                                  builder:(context, snapshot) {
+                                    if(snapshot.hasData){
+                                      final datax = snapshot.data;
+                                      return UnitPatient(
+                                          patientName: datax!.name, 
+                                          imgUrl: datax.image, );
+                                    }
+
+                                    
+                                    if(snapshot.hasError){
+                                        return const Center(
+                                          child:SizedBox(
+                                            height: 300,
+                                            child: Text(
+                                              "Check your Internet and try Again",
+                                              style: AppStyles.normalGreyTextStyle,
+                                            ),
+                                          ));
+                                      }
+
+                                      return Container(
+                                        constraints:  const BoxConstraints.expand(
+                                          height: 40,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(15)
+                                        ),
+                                        color: const Color.fromARGB(255, 250, 250, 250),
+                                      );
+
+
+
+                                  },)
+                                // UnitAppointment(
+                                // date: data![x].sessionDate.substring(0, data![x].sessionDate.length-5), 
+                                // doctorName: "patient name", 
+                                // imgUrl: "assets/images/img.jpeg", 
+                                // time: data![x].sessionDate.substring(data![x].sessionDate.length-6)),
+                              )),
+                          );
+                        }
+
+
+                        if(snapshot.hasError){
+                          return const Center(
+                            child:SizedBox(
+                              height: 300,
+                              child: Text(
+                                "Failed to Fetch bookings\n Check your Internet and try Again",
+                                style: AppStyles.normalGreyTextStyle,
+                              ),
+                            ));
+                        }
+
+                        return const Center(
+                          child:SizedBox(
+                            // height: 100,
+                            // width: 100,
+                            child: CircularProgressIndicator(),
+                          ));
+                      },),
+                )),
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  ///=========================================use the sample below
+                //   Column(
+                //     children: List.generate(
+                //       3, (x) => GestureDetector(
+                //         onTap: (){
+                //           showModalBottomSheet(
+                //             isScrollControlled: true,
+                //             context: context, 
+                //             builder: (context){
+                //               return PatientViewDialog(
+                //                 patientName: AppConstants.userInfo[x]['username'], 
+                //                 patientEmail: AppConstants.userInfo[x]['email'], 
+                //                 nin: "CMI23OU34JHKKJ23HH4", 
+                //                 phone: AppConstants.userInfo[x]['phone'], 
+                //                 coverImg: "assets/images/img.jpeg");
                               
-                            });
-                        },
-                        child: UnitPatient(
-                          patientName: AppConstants.userInfo[x]['username']??"", 
-                          imgUrl: "assets/images/img.jpeg", ),
-                      )),
-                  ),
-                ),
+                //             });
+                //         },
+                //         child: UnitPatient(
+                //           patientName: AppConstants.userInfo[x]['username']??"", 
+                //           imgUrl: "assets/images/img.jpeg", ),
+                //       )),
+                //   ),
+                // ),
 
                 const SizedBox(height: 10,),
                 Padding(
@@ -674,7 +1176,7 @@ class _doctorsDashboardState extends State<DoctorsDashBoard>{
                 const SizedBox(height: 30,),
               ],
             ),
-          );
+      ));
   }
 }
 

@@ -99,7 +99,7 @@ class BookingsRepositoryApi implements BookingsRespositoryBase{
         if(res.statusCode == 200 || res.statusCode == 201){
           print("Bookings fetched successfully......... ${res.body}");
           List<BookingModule> bookings = [];
-          final data = jsonDecode(res.body)["Bookings"] as List<dynamic>;
+          final data = jsonDecode(res.body)["booking"] as List<dynamic>;
           for(var item in data){
             bookings.add(BookingModule.fromJson(item));
           }
@@ -141,7 +141,7 @@ class BookingsRepositoryApi implements BookingsRespositoryBase{
         if(res.statusCode == 200 || res.statusCode == 201){
           print("Bookings fetch successfully......... ${res.body}");
           List<BookingModule> bookings = [];
-          final data = jsonDecode(res.body)["Bookings"] as List<dynamic>;
+          final data = jsonDecode(res.body)["booking"] as List<dynamic>;
           for(var item in data){
             bookings.add(BookingModule.fromJson(item));
           }
@@ -182,7 +182,7 @@ class BookingsRepositoryApi implements BookingsRespositoryBase{
         if(res.statusCode == 200 || res.statusCode == 201){
           print("Bookings fetch successfully......... ${res.body}");
           List<BookingModule> bookings = [];
-          final data = jsonDecode(res.body)["Bookings"] as List<dynamic>;
+          final data = jsonDecode(res.body)["booking"] as List<dynamic>;
           for(var item in data){
             bookings.add(BookingModule.fromJson(item));
           }

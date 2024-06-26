@@ -15,11 +15,13 @@ class ArticlesRepositoryApi implements ArticlesRepositoryBase{
       final uri = Uri.parse(AppConstants.createArticle);
 
       final Map<String, dynamic> payload = {
-        "doctor_id": article.doctorId,
+        "doctor_id": "${article.doctorId}",
         "image": article.image,
-        "content": article.content
+        "content": article.content,
+        "link": article.link
       };
 
+      print("------> Doctors here....");
 
       try{
 
@@ -93,7 +95,7 @@ class ArticlesRepositoryApi implements ArticlesRepositoryBase{
 
         if(res.statusCode == 200 || res.statusCode == 201){
           print("Articles got successfully.....  ${res.statusCode} ${res.body}");
-          final data = jsonDecode(res.body)['articles'] as List<Map<String, dynamic>>;
+          final data = jsonDecode(res.body)['articles'] as List<dynamic>;
           final List<ArticleModule> articles = [];
           for(var item in data){
             articles.add(ArticleModule.fromJson(item));
@@ -132,7 +134,7 @@ class ArticlesRepositoryApi implements ArticlesRepositoryBase{
 
         if(res.statusCode == 200 || res.statusCode == 201){
           print("Article got successfully ... ${res.body}");
-          final article = jsonDecode(res.body) as Map<String, dynamic>;
+          final article = jsonDecode(res.body)["article"] as Map<String, dynamic>;
           return ArticleModule.fromJson(article);
         }else if(res.statusCode == 404){
           print("Article not found.......    ${res.body}");
@@ -168,7 +170,7 @@ class ArticlesRepositoryApi implements ArticlesRepositoryBase{
 
         if(res.statusCode == 200 || res.statusCode == 201){
           print("Articles got successfully.....  ${res.statusCode} ${res.body}");
-          final data = jsonDecode(res.body)['articles'] as List<Map<String, dynamic>>;
+          final data = jsonDecode(res.body)['articles'] as List<dynamic>;
           final List<ArticleModule> articles = [];
           for(var item in data){
             articles.add(ArticleModule.fromJson(item));

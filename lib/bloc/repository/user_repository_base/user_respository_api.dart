@@ -327,4 +327,106 @@ class UserRespositoryApi implements UserRepositoryBase{
     }
   }
   
+  @override
+  Future<List<DoctorModule>> getAllDoctor({
+    required String token}) async{
+      final uri = Uri.parse(AppConstants.getAllDoctors);
+
+    try{
+
+      final res = await http.get(
+        uri,
+        headers: {
+          "Authorization": token
+        }
+      );
+
+      if(res.statusCode == 200 ||  res.statusCode == 201){
+        print("Succesfuly fetched Doctors::   ${res.statusCode}  ${res.body}");
+
+        final List<DoctorModule> doctors = [];
+        final data = jsonDecode(res.body)['doctors'] as List<dynamic>;
+
+        for(var item in data){
+          doctors.add(DoctorModule.fromJson(item as Map<String, dynamic>));
+        }
+        
+        return doctors;
+      }else if(res.statusCode == 401){
+        print("Unauthorized::   ${res.statusCode}  ${res.body}");
+        return [];
+      }else{
+        print("Failed to fetch doctors::   ${res.statusCode}  ${res.body}");
+        return [];
+      }
+
+    }catch(err){
+      print("Error fetching doctors::   $err");
+      return [];
+    }
+  }
+  
+  @override
+  Future<DoctorModule?> getSingleDoctorProfile({
+    required String token, required int doctorId}) async{
+    final uri = Uri.parse("${AppConstants.getSingleDoctor}$doctorId");
+
+    try{
+
+      final res = await http.get(
+        uri,
+        headers: {
+          "Authorization": token
+        }
+      );
+
+      if(res.statusCode == 200 ||  res.statusCode == 201){
+        print("Succesfuly fetched Doctor profile::   ${res.statusCode}  ${res.body}");
+        
+        return DoctorModule.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+      }else if(res.statusCode == 404){
+        print("User (Doctor) not found::   ${res.statusCode}  ${res.body}");
+      }else{
+        print("Failed to fetch Doctor profile::   ${res.statusCode}  ${res.body}");
+      }
+
+    }catch(err){
+      print("Error fetching profile::   $err");
+      return null;
+    }
+  }
+  
+  @override
+  Future<PatientModule?> getSinglePatientProfile({
+    required String token, 
+    required int patientId}) async{
+    
+    final uri = Uri.parse("${AppConstants.getSinglePatient}$patientId");
+
+    try{
+
+      final res = await http.get(
+        uri,
+        headers: {
+          "Authorization": token
+        }
+      );
+
+      if(res.statusCode == 200 ||  res.statusCode == 201){
+        print("Succesfuly fetched Patient profile::   ${res.statusCode}  ${res.body}");
+        
+        ///todo
+        return PatientModule.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+      }else if(res.statusCode == 404){
+        print("User (Patient) not found::   ${res.statusCode}  ${res.body}");
+      }else{
+        print("Failed to fetch patient profile::   ${res.statusCode}  ${res.body}");
+      }
+
+    }catch(err){
+      print("Error fetching profile::   $err");
+      return null;
+    }
+  }
+  
 }

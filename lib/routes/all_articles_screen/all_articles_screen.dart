@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sample_app/providers/articles_provider.dart';
+import 'package:sample_app/providers/user_provider.dart';
 import 'package:sample_app/routes/account_details_screen/widgets/account_details_screen_widgets.dart';
 import 'package:sample_app/utils/app_colors.dart';
 import 'package:sample_app/utils/app_styles.dart';
@@ -42,7 +45,9 @@ class _allArticlesScreenState extends State<AllArticlesScreen>{
       ),
 
 
-      body: SafeArea(
+      body: Consumer2<UserProvider, ArticlesProvider>(
+        builder:(context, valueU, valueA, child) 
+          => SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 10
@@ -54,20 +59,50 @@ class _allArticlesScreenState extends State<AllArticlesScreen>{
               child: Column(
                   children: [
                     const SizedBox(height: 30,),
-                    DGridWidget(
-                      colCount: 2,
-                      children: List.generate(
-                        9, (i)=> ImageTitleCard(
-                          imageUrl: "assets/images/img.jpeg", 
-                          title: "The Begning of a new treatment age.", 
-                          textStyle: AppStyles.normalBlackTextStyle, 
-                          width: width, 
-                          height: 200)), 
-                      )
+                    FutureBuilder(
+                          future: valueA.articlesRepo.getAllArticles(
+                            token:valueU.token, ), 
+                            builder:(context, snapshot) {
+                              
+                              if(snapshot.hasData){
+                                final data = snapshot.data;
+
+                                return DGridWidget(
+                                  colCount: 2,
+                                  children: List.generate(
+                                    data?.length??0, (i)=> ImageTitleCard(
+                                      imageUrl: data![i].image, 
+                                      title: data![i].content, 
+                                      link: data![i].link,
+                                      textStyle: AppStyles.normalBlackTextStyle, 
+                                      width: width, 
+                                      height: 200)), 
+                                  );
+                              }
+
+                            if(snapshot.hasError){
+                              return const Center(
+                                child:SizedBox(
+                                  height: 300,
+                                  child: Text(
+                                    "Failed to Fetch Articles\n Check your Internet and try Again",
+                                    style: AppStyles.normalGreyTextStyle,
+                                  ),
+                                ));
+                            }
+
+                            return const Center(
+                              child:SizedBox(
+                                // height: 300,
+                                child: CircularProgressIndicator(),
+                              ));
+
+
+                            },)
                   ],
                 ),
               );
             },),)),
-    );
+    ));
   }
 }

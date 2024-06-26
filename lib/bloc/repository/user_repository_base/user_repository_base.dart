@@ -25,7 +25,16 @@ abstract interface class UserRepositoryBase{
   });
   Future<DoctorModule?> getDoctorProfile({
     required String token
-  }); 
+  });
+  Future<PatientModule?> getSinglePatientProfile({
+    required String token,
+    required int patientId
+  });
+  Future<DoctorModule?> getSingleDoctorProfile({
+    required String token,
+    required int doctorId
+  });
+
   Future<int> loginAsAdmin({
     required String email,
     required String password,
@@ -53,6 +62,10 @@ abstract interface class UserRepositoryBase{
     required String password,
     required PatientModule pateintModule
   });
+
+  Future<List<DoctorModule>> getAllDoctor({
+    required String token
+  }); 
 
 
 

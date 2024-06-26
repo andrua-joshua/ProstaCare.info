@@ -1,8 +1,19 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
+import 'package:sample_app/bloc/modules/article_module.dart';
+import 'package:sample_app/bloc/modules/group_module.dart';
+import 'package:sample_app/providers/articles_provider.dart';
+import 'package:sample_app/providers/group_provider.dart';
+import 'package:sample_app/providers/user_provider.dart';
 import 'package:sample_app/utils/app_colors.dart';
+import 'package:sample_app/utils/app_constants.dart';
 import 'package:sample_app/utils/app_styles.dart';
 import 'package:sample_app/utils/app_text_input_fields.dart';
 import 'package:sample_app/utils/buttons.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CreateGroupDialog extends StatefulWidget{
   const CreateGroupDialog({super.key});
@@ -19,6 +30,8 @@ class _createGroupState  extends State<CreateGroupDialog>{
   late final TextEditingController _titleController;
   late final TextEditingController _groupLinkController;
   late final TextEditingController _descriptionController;
+
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -39,98 +52,155 @@ class _createGroupState  extends State<CreateGroupDialog>{
     
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(15),
-          topRight: Radius.circular(15),
-        )
-      ),
+    return Consumer2<UserProvider, GroupProvider>(
+      builder: (context, valueU, valueG, child) {
+        
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(15),
+              topRight: Radius.circular(15),
+            )
+          ),
 
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 10
-      ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 10
+          ),
 
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Center(
-            child: Container(
-              width: 100,
-              height: 3,
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(2)
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 100,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.circular(2)
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 20,),
-          const Center(
-            child:Text(
-            "Add Group",
-            style: AppStyles.bigBoldBlackTextStyle,
-            )),
-          const SizedBox(height: 20,),
-          const Text(
-            "Title",
-            style: AppStyles.normalBlackTextStyle,
-          ),
+              const SizedBox(height: 20,),
+              const Center(
+                child:Text(
+                "Add Group",
+                style: AppStyles.bigBoldBlackTextStyle,
+                )),
+              const SizedBox(height: 20,),
+              const Text(
+                "Title",
+                style: AppStyles.normalBlackTextStyle,
+              ),
 
-          DSolidTextInputField(
-            hintText: "Enter group title", 
-            hintTextStyle: AppStyles.normalGreyTextStyle, 
-            valueTextStyle: AppStyles.normalBlackTextStyle, 
-            bgColor: AppColors.softWhiteColor, 
-            borderRadius: 20, 
-            btnHeight: 45, 
-            controller: _titleController),
+              DSolidTextInputField(
+                hintText: "Enter group title", 
+                hintTextStyle: AppStyles.normalGreyTextStyle, 
+                valueTextStyle: AppStyles.normalBlackTextStyle, 
+                bgColor: AppColors.softWhiteColor, 
+                borderRadius: 20, 
+                btnHeight: 45, 
+                controller: _titleController),
 
-          const SizedBox(height: 20,),
-          const Text(
-            "Link",
-            style: AppStyles.normalBlackTextStyle,
-          ),
+              const SizedBox(height: 20,),
+              const Text(
+                "Link",
+                style: AppStyles.normalBlackTextStyle,
+              ),
 
-          DSolidTextInputField(
-            hintText: "Enter Group link", 
-            hintTextStyle: AppStyles.normalGreyTextStyle, 
-            valueTextStyle: AppStyles.normalBlackTextStyle, 
-            bgColor: AppColors.softWhiteColor, 
-            borderRadius: 20, 
-            btnHeight: 45, 
-            controller: _groupLinkController),
+              DSolidTextInputField(
+                hintText: "Enter Group link", 
+                hintTextStyle: AppStyles.normalGreyTextStyle, 
+                valueTextStyle: AppStyles.normalBlackTextStyle, 
+                bgColor: AppColors.softWhiteColor, 
+                borderRadius: 20, 
+                btnHeight: 45, 
+                controller: _groupLinkController),
 
 
-          const SizedBox(height: 20,),
-          const Text(
-            "Description",
-            style: AppStyles.normalBlackTextStyle,
-          ),
+              const SizedBox(height: 20,),
+              const Text(
+                "Description",
+                style: AppStyles.normalBlackTextStyle,
+              ),
 
-          DSolidTextInputField(
-            hintText: "Short group description", 
-            hintTextStyle: AppStyles.normalGreyTextStyle, 
-            valueTextStyle: AppStyles.normalBlackTextStyle, 
-            bgColor: AppColors.softWhiteColor, 
-            borderRadius: 20, 
-            btnHeight: 45, 
-            controller: _descriptionController),
+              DSolidTextInputField(
+                hintText: "Short group description", 
+                hintTextStyle: AppStyles.normalGreyTextStyle, 
+                valueTextStyle: AppStyles.normalBlackTextStyle, 
+                bgColor: AppColors.softWhiteColor, 
+                borderRadius: 20, 
+                btnHeight: 45, 
+                controller: _descriptionController),
 
-          const SizedBox(height: 50,),
+              const SizedBox(height: 50,),
 
-          DSolidButton(
-            label: "Add Group", 
-            btnHeight: 45, 
-            bgColor: AppColors.primaryColor, 
-            borderRadius: 20, 
-            textStyle: AppStyles.normalWhiteTextStyle, 
-            onClick: (){})
-        ],
-      )
-    );
+               isLoading? 
+               const Center(
+                child: SizedBox(
+                  height: 30,
+                  width: 30,
+                  child:CircularProgressIndicator()),
+               ): DSolidButton(
+                label: "Add Group", 
+                btnHeight: 45, 
+                bgColor: AppColors.primaryColor, 
+                borderRadius: 20, 
+                textStyle: AppStyles.normalWhiteTextStyle, 
+                onClick: () => addGroup(
+                  userProvider: valueU, 
+                  groupProvider: valueG, 
+                  context: context))
+            ],
+          )
+        );
+      },);
+  }
+
+
+
+
+  Future<void> addGroup({
+    required UserProvider userProvider,
+    required GroupProvider groupProvider,
+    required BuildContext context
+  })async {
+
+    setState(() {
+      isLoading = true;
+    });
+
+    final res = await groupProvider.groupRepo.addGroup(
+      token: userProvider.token, 
+      group: GroupModule(
+        id: 0, 
+        title: _titleController.text, 
+        description: _descriptionController.text, 
+        coverImg: "thlfdfi0sdjfkdnfid9fsifjodsjfsfdsfsdncsfvjfov", 
+        doctorId: userProvider.doctorModule!.id, 
+        link: _groupLinkController.text));
+
+
+
+    setState(() {
+        isLoading = false;
+      });
+
+    if(res == 1){
+      Fluttertoast.showToast(
+        msg: "Group added succesfully");
+
+      Navigator.pop(context);
+      groupProvider.notifyAll();
+    }else if(res == -1){
+      Fluttertoast.showToast(
+        msg: "Unauthorized");
+    }else{
+      Fluttertoast.showToast(
+        msg: "Failed to Add group");
+    }
   }
 }
 
@@ -155,6 +225,11 @@ class _AddArticleDialogState  extends State<AddArticleDialog>{
   late final TextEditingController _titleController;
   late final TextEditingController _articleLinkController;
   late final TextEditingController _descriptionController;
+  late final TextEditingController _coverImageLinkController;
+
+
+  bool isLoading = false;
+
 
   @override
   void initState() {
@@ -162,6 +237,7 @@ class _AddArticleDialogState  extends State<AddArticleDialog>{
     _titleController = TextEditingController();
     _articleLinkController = TextEditingController();
     _descriptionController = TextEditingController();
+    _coverImageLinkController = TextEditingController();
 
   }
 
@@ -171,103 +247,170 @@ class _AddArticleDialogState  extends State<AddArticleDialog>{
     _titleController.dispose();
     _articleLinkController.dispose();
     _descriptionController.dispose();
+    _coverImageLinkController.dispose();
+
     super.dispose();
   }
     
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(15),
-          topRight: Radius.circular(15),
-        )
-      ),
+    return Consumer2<UserProvider, ArticlesProvider>(
+      builder: (context, valueU, valueA, child) {
+        
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(15),
+              topRight: Radius.circular(15),
+            )
+          ),
 
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 10
-      ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 10
+          ),
 
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Center(
-            child: Container(
-              width: 100,
-              height: 3,
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(2)
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 100,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.circular(2)
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 20,),
-          const Center(
-            child:Text(
-            "Add Article",
-            style: AppStyles.bigBoldBlackTextStyle,
-            )),
-          const SizedBox(height: 20,),
-          const Text(
-            "Title",
-            style: AppStyles.normalBlackTextStyle,
-          ),
+              const SizedBox(height: 20,),
+              const Center(
+                child:Text(
+                "Add Article",
+                style: AppStyles.bigBoldBlackTextStyle,
+                )),
+              const SizedBox(height: 20,),
+              const Text(
+                "Title",
+                style: AppStyles.normalBlackTextStyle,
+              ),
 
-          DSolidTextInputField(
-            hintText: "Enter Article title", 
-            hintTextStyle: AppStyles.normalGreyTextStyle, 
-            valueTextStyle: AppStyles.normalBlackTextStyle, 
-            bgColor: AppColors.softWhiteColor, 
-            borderRadius: 20, 
-            btnHeight: 45, 
-            controller: _titleController),
+              DSolidTextInputField(
+                hintText: "Enter Article title", 
+                hintTextStyle: AppStyles.normalGreyTextStyle, 
+                valueTextStyle: AppStyles.normalBlackTextStyle, 
+                bgColor: AppColors.softWhiteColor, 
+                borderRadius: 20, 
+                btnHeight: 45, 
+                controller: _titleController),
 
-          const SizedBox(height: 20,),
-          const Text(
-            "Link",
-            style: AppStyles.normalBlackTextStyle,
-          ),
+              const SizedBox(height: 20,),
+              const Text(
+                "Link",
+                style: AppStyles.normalBlackTextStyle,
+              ),
 
-          DSolidTextInputField(
-            hintText: "Enter Article link", 
-            hintTextStyle: AppStyles.normalGreyTextStyle, 
-            valueTextStyle: AppStyles.normalBlackTextStyle, 
-            bgColor: AppColors.softWhiteColor, 
-            borderRadius: 20, 
-            btnHeight: 45, 
-            controller: _articleLinkController),
+              DSolidTextInputField(
+                hintText: "Enter Article link", 
+                hintTextStyle: AppStyles.normalGreyTextStyle, 
+                valueTextStyle: AppStyles.normalBlackTextStyle, 
+                bgColor: AppColors.softWhiteColor, 
+                borderRadius: 20, 
+                btnHeight: 45, 
+                controller: _articleLinkController),
+
+              const SizedBox(height: 20,),
+              const Text(
+                "Cover Image Link",
+                style: AppStyles.normalBlackTextStyle,
+              ),
+
+              DSolidTextInputField(
+                hintText: "Cover image", 
+                hintTextStyle: AppStyles.normalGreyTextStyle, 
+                valueTextStyle: AppStyles.normalBlackTextStyle, 
+                bgColor: AppColors.softWhiteColor, 
+                borderRadius: 20, 
+                btnHeight: 45, 
+                controller: _coverImageLinkController),
 
 
-          const SizedBox(height: 20,),
-          const Text(
-            "Description",
-            style: AppStyles.normalBlackTextStyle,
-          ),
+              const SizedBox(height: 20,),
+              const Text(
+                "Description",
+                style: AppStyles.normalBlackTextStyle,
+              ),
 
-          DSolidTextInputField(
-            hintText: "Short group description", 
-            hintTextStyle: AppStyles.normalGreyTextStyle, 
-            valueTextStyle: AppStyles.normalBlackTextStyle, 
-            bgColor: AppColors.softWhiteColor, 
-            borderRadius: 20, 
-            btnHeight: 45, 
-            controller: _descriptionController),
+              DSolidTextInputField(
+                hintText: "Short group description", 
+                hintTextStyle: AppStyles.normalGreyTextStyle, 
+                valueTextStyle: AppStyles.normalBlackTextStyle, 
+                bgColor: AppColors.softWhiteColor, 
+                borderRadius: 20, 
+                btnHeight: 45, 
+                controller: _descriptionController),
 
-          const SizedBox(height: 50,),
+              const SizedBox(height: 50,),
 
-          DSolidButton(
-            label: "Add Article", 
-            btnHeight: 45, 
-            bgColor: AppColors.primaryColor, 
-            borderRadius: 20, 
-            textStyle: AppStyles.normalWhiteTextStyle, 
-            onClick: (){})
-        ],
-      )
-    );
+              isLoading? 
+               const Center(
+                child: SizedBox(
+                  height: 30,
+                  width: 30,
+                  child:CircularProgressIndicator()),
+               ):DSolidButton(
+                label: "Add Article", 
+                btnHeight: 45, 
+                bgColor: AppColors.primaryColor, 
+                borderRadius: 20, 
+                textStyle: AppStyles.normalWhiteTextStyle, 
+                onClick: ()=> addArticle(
+                  userProvider: valueU, 
+                  articleProvider: valueA, context: context))
+            ],
+          )
+        );
+      },);
+  }
+
+
+  Future<void> addArticle({
+    required UserProvider userProvider,
+    required ArticlesProvider articleProvider,
+    required BuildContext context
+  })async{
+
+    setState(() {
+      isLoading  = true;
+    });
+
+    final res = await articleProvider.articlesRepo.addArticle(
+      token: userProvider.token, 
+      article: ArticleModule(
+        id: 0, 
+        content: _titleController.text, 
+        doctorId: "${userProvider.doctorModule!.id}", 
+        image:  _coverImageLinkController.text.isEmpty?
+         AppConstants.articlePlaceHolder: _coverImageLinkController.text, 
+        link: _articleLinkController.text));
+
+
+    setState(() {
+      isLoading  = false;
+    });
+
+    if(res == 1){
+      Fluttertoast.showToast(
+        msg: "Article added successful");
+      articleProvider.notifylAll();
+      Navigator.pop(context);
+    }else {
+      Fluttertoast.showToast(
+        msg: "Article not added");
+    }
+
   }
 }
 
@@ -365,7 +508,9 @@ class _GroupViewDialogState  extends State<GroupViewDialog>{
             bgColor: AppColors.primaryColor, 
             borderRadius: 20, 
             textStyle: AppStyles.normalWhiteTextStyle, 
-            onClick: (){})
+            onClick: (){
+              launchUrl(Uri.parse(widget.groupLink));
+            })
         ],
       )
     );

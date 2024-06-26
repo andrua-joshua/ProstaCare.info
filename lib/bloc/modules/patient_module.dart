@@ -1,3 +1,5 @@
+import 'package:sample_app/utils/app_constants.dart';
+
 class PatientModule{
 
   final int id;
@@ -7,6 +9,7 @@ class PatientModule{
   final String nin;
   final String age;
   final String sex;
+  final String image;
 
 
   const PatientModule({
@@ -16,7 +19,8 @@ class PatientModule{
     required this.phone,
     required this.age,
     required this.nin,
-    required this.sex
+    required this.sex,
+    required this.image
   });
 
 
@@ -27,7 +31,8 @@ class PatientModule{
       email: json["email"], 
       phone: json["phone"], 
       age: json["age"], 
-      nin: json["nin"], 
+      nin: json["nin"],
+      image: json["image"]??AppConstants.userPlaceholderImage, 
       sex: json["sex"]);
 
   Map<String, dynamic> toJson()
@@ -38,7 +43,8 @@ class PatientModule{
       "phone": phone,
       "age": age,
       "nin": nin,
-      "sex":sex
+      "sex":sex,
+      "image":image
     };
 
 }

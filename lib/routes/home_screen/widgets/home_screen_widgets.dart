@@ -64,7 +64,7 @@ class _UserTitleCardState extends State<UserTitleCard>{
               shape: BoxShape.circle,
               image: DecorationImage(
                 fit: BoxFit.cover,
-                image: AssetImage(widget.imageUrl))
+                image: NetworkImage(widget.imageUrl))
             ),
             margin: const EdgeInsets.all(10),
           ),

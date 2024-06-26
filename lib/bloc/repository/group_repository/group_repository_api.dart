@@ -15,10 +15,11 @@ class GroupRepositoryApi implements GroupRespositoryBase{
     }) async{
       final uri = Uri.parse(AppConstants.createGroup);
       final Map<String, dynamic> payload = {
-        "doctor_id": group.doctorId,
+        "doctor_id": "${group.doctorId}",
         "title": group.title,
         "description": group.description,
-        "link":group.link
+        "link":group.link,
+        "image":group.coverImg
       };
 
       try{
@@ -102,7 +103,7 @@ class GroupRepositoryApi implements GroupRespositoryBase{
 
 
         if(res.statusCode == 200 || res.statusCode == 201){
-          print("Groups got successfully.........  ${res.body}");
+          print("Groups got successfully........  ${res.body} \n ====>>>> ${jsonDecode(res.body)["group"]} <===============");
           List<GroupModule> groups = [];
           final data = jsonDecode(res.body)["groups"] as List<dynamic>;
           for(var item in data){
@@ -143,7 +144,7 @@ class GroupRepositoryApi implements GroupRespositoryBase{
         if(res.statusCode == 200 || res.statusCode == 201){
           print("Groups got successfully.........  ${res.body}");
           List<GroupModule> groups = [];
-          final data = jsonDecode(res.body)["groups"] as List<dynamic>;
+          final data = jsonDecode(res.body)["group"] as List<dynamic>;
           for(var item in data){
             groups.add(GroupModule.fromJson(item));
           }
@@ -180,7 +181,7 @@ class GroupRepositoryApi implements GroupRespositoryBase{
 
         if(res.statusCode == 200 || res.statusCode == 201){
           print("Group got successfully.........  ${res.body}");
-          final data = jsonDecode(res.body)["groups"];
+          final data = jsonDecode(res.body)["group"];
           return GroupModule.fromJson(data);
         }else if(res.statusCode == 401){
           print("Unauthorized.........  ${res.body}");

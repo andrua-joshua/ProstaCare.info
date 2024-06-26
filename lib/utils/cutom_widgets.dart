@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sample_app/route.dart';
 import 'package:sample_app/utils/app_colors.dart';
 import 'package:sample_app/utils/app_styles.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DRadioOptions extends StatefulWidget{
   final List<String> options;
@@ -27,14 +28,14 @@ class _DRadioOptionsState extends State<DRadioOptions>{
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder:(context, constraints) {
-        double width = constraints.maxWidth*0.33;
+        double width = constraints.maxWidth*0.35;
         return Column(
           children: [
             SizedBox(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: List.generate(
-                  3, (index) => SizedBox(
+                  2, (index) => SizedBox(
                     width: width,
                     child:unitItem(widget.options[index], index))),
               ),
@@ -86,6 +87,7 @@ class _DRadioOptionsState extends State<DRadioOptions>{
 
 class ImageTitleCard extends StatefulWidget{
   final String imageUrl;
+  final String link;
   final String title;
   final TextStyle textStyle;
   final double width;
@@ -96,6 +98,7 @@ class ImageTitleCard extends StatefulWidget{
     required this.imageUrl,
     required this.title,
     required this.textStyle,
+    required this.link,
     required this.width,
     required this.height
   });
@@ -112,7 +115,7 @@ class _imageTitleCardState extends State<ImageTitleCard>{
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: ()=> Navigator.pushNamed(context, RouteGenerator.readArticlesScreen),
+      onTap: ()=> launchUrl(Uri.parse(widget.link)),
       child: Container(
       width: widget.width,
       height: widget.height,
@@ -138,9 +141,8 @@ class _imageTitleCardState extends State<ImageTitleCard>{
               borderRadius: BorderRadius.circular(15),
               image: DecorationImage(
                 fit: BoxFit.cover,
-                image: AssetImage(
-                  // widget.imageUrl
-                  "assets/images/x.jpg"
+                image: NetworkImage(
+                  widget.imageUrl
                   ))
             ),
           ),
@@ -264,7 +266,7 @@ class DGridWidget extends StatelessWidget{
           children: List.generate(
             ((row == (rows-1)) && lastColCount>0)
             ? lastColCount: colCount , 
-            (col)=> children[row+col]),
+            (col)=> children[col==0? (row+col) : (row+col)+1]),
         ))),
     );
   }
